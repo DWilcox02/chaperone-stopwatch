@@ -43,7 +43,10 @@ export default function StopwatchScreen() {
     return (
         <View style={styles.container}>
             <SafeAreaView style={styles.safeArea}>
-                <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={true}>
+                <ScrollView
+                    contentContainerStyle={styles.content}
+                    showsVerticalScrollIndicator={true}
+                >
                     <View style={styles.header}>
                         <View>
                             <ThemedText style={styles.kicker}>SETTIME / TODAY</ThemedText>

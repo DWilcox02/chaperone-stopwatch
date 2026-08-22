@@ -1,7 +1,7 @@
-import { Animated, PanResponder, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
-import { formatClock, formatDuration } from "@/constants/utils";
+import { formatClock, formatDuration, formatHoursMinutes, formatHoursRounded } from "@/constants/utils";
 import styles from "@/constants/styles";
 
 import type { Category, Child, Segment } from "@/constants/types";
@@ -11,9 +11,7 @@ type ChildActivityCardProps = {
     activeSegment: Segment;
     category: { name: Category; color: string };
     currentTime: number;
-    isDragging: boolean;
-    dragPosition: Animated.ValueXY;
-    responder: ReturnType<typeof PanResponder.create>;
+    onPress: () => void;
 };
 
 export function ChildActivityCard({
@@ -21,19 +19,16 @@ export function ChildActivityCard({
     activeSegment,
     category,
     currentTime,
-    isDragging,
-    dragPosition,
-    responder,
+    onPress,
 }: ChildActivityCardProps) {
+    const totalTime = child.segments.reduce((total, segment) => (
+        total + (segment.endedAt ?? currentTime) - segment.startedAt
+    ), 0);
+
     return (
-        <Animated.View
-            {...responder.panHandlers}
-            style={[
-                styles.childCard,
-                { borderLeftColor: child.color },
-                isDragging && styles.childCardDragging,
-                isDragging && { transform: dragPosition.getTranslateTransform() },
-            ]}
+        <Pressable
+            onPress={onPress}
+            style={({ pressed }) => [styles.childCard, { borderLeftColor: child.color }, pressed && styles.pressed]}
         >
             <View style={styles.childCardTop}>
                 <ThemedText style={styles.childCardName}>{child.name}</ThemedText>
@@ -42,7 +37,10 @@ export function ChildActivityCard({
                 </ThemedText>
             </View>
             <ThemedText style={styles.childCardRole}>{child.role}</ThemedText>
+            <ThemedText style={styles.childCardHours}>
+                {formatHoursMinutes(totalTime)} / {formatHoursRounded(child.allowedHours * 60 * 60 * 1000)}
+            </ThemedText>
             <ThemedText style={styles.childCardStarted}>Since {formatClock(activeSegment.startedAt)}</ThemedText>
-        </Animated.View>
+        </Pressable>
     );
 }

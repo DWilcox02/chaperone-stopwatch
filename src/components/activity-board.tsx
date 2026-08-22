@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { Animated, PanResponder, ScrollView, View } from "react-native";
+import { useState } from "react";
+import { Modal, Pressable, View } from "react-native";
 
 import { ChildActivityCard } from "@/components/child-activity-card";
 import { ThemedText } from "@/components/themed-text";
@@ -16,45 +16,18 @@ type ActivityBoardProps = {
     onMoveChild: (childId: string, category: Category) => void;
 };
 
-export function ActivityBoard({ children, currentTime, totalDuration, onMoveChild }: ActivityBoardProps) {
-    const [draggingChildId, setDraggingChildId] = useState<string | null>(null);
-    const dragPosition = useRef(new Animated.ValueXY()).current;
-    const categoryRefs = useRef<Record<Category, View | null>>({} as Record<Category, View | null>);
+export function ActivityBoard({
+    children,
+    currentTime,
+    totalDuration,
+    onMoveChild,
+}: ActivityBoardProps) {
+    const [selectedChild, setSelectedChild] = useState<Child | null>(null);
 
-    function dropChild(childId: string, moveX: number, moveY: number) {
-        const checks = categories.map((category) => new Promise<Category | null>((resolve) => {
-            categoryRefs.current[category.name]?.measureInWindow((x, y, width, height) => {
-                resolve(moveX >= x && moveX <= x + width && moveY >= y && moveY <= y + height ? category.name : null);
-            });
-        }));
-        Promise.all(checks).then((matches) => {
-            const category = matches.find(Boolean);
-            if (category) onMoveChild(childId, category);
-        });
-    }
-
-    function createDragResponder(child: Child) {
-        return PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onMoveShouldSetPanResponder: () => true,
-            onPanResponderGrant: () => {
-                setDraggingChildId(child.id);
-                dragPosition.setValue({ x: 0, y: 0 });
-            },
-            onPanResponderMove: Animated.event([
-                null,
-                { dx: dragPosition.x, dy: dragPosition.y },
-            ], { useNativeDriver: false }),
-            onPanResponderRelease: (_, gestureState) => {
-                dropChild(child.id, gestureState.moveX, gestureState.moveY);
-                setDraggingChildId(null);
-                Animated.spring(dragPosition, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
-            },
-            onPanResponderTerminate: () => {
-                setDraggingChildId(null);
-                Animated.spring(dragPosition, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
-            },
-        });
+    function selectActivity(category: Category) {
+        if (!selectedChild) return;
+        onMoveChild(selectedChild.id, category);
+        setSelectedChild(null);
     }
 
     return (
@@ -62,12 +35,12 @@ export function ActivityBoard({ children, currentTime, totalDuration, onMoveChil
             <View style={styles.boardIntro}>
                 <View>
                     <ThemedText style={styles.sectionTitle}>Live board</ThemedText>
-                    <ThemedText style={styles.sectionHint}>Drag a child to start their next activity</ThemedText>
+                    <ThemedText style={styles.sectionHint}>Tap a child to change their activity</ThemedText>
                 </View>
                 <ThemedText style={styles.boardTotal}>{formatDuration(totalDuration)} tracked</ThemedText>
             </View>
 
-            <ScrollView contentContainerStyle={styles.board}>
+            <View style={styles.board}>
                 {categories.map((category) => {
                     const columnChildren = children.filter((child) => (
                         child.segments[child.segments.length - 1].category === category.name
@@ -76,7 +49,6 @@ export function ActivityBoard({ children, currentTime, totalDuration, onMoveChil
                     return (
                         <View
                             key={category.name}
-                            ref={(ref) => { categoryRefs.current[category.name] = ref; }}
                             style={styles.activityColumn}
                         >
                             <View style={styles.activityHeader}>
@@ -84,7 +56,7 @@ export function ActivityBoard({ children, currentTime, totalDuration, onMoveChil
                                 <ThemedText style={styles.activityTitle}>{category.shortName}</ThemedText>
                                 <ThemedText style={styles.activityCount}>{columnChildren.length}</ThemedText>
                             </View>
-                            <View style={[styles.dropZone, { borderColor: `${category.color}45` }]}> 
+                            <View style={[styles.activityGroup, !columnChildren.length && styles.activityGroupEmpty]}>
                                 {columnChildren.map((child) => (
                                     <ChildActivityCard
                                         key={child.id}
@@ -92,17 +64,37 @@ export function ActivityBoard({ children, currentTime, totalDuration, onMoveChil
                                         activeSegment={child.segments[child.segments.length - 1]}
                                         category={category}
                                         currentTime={currentTime}
-                                        isDragging={draggingChildId === child.id}
-                                        dragPosition={dragPosition}
-                                        responder={createDragResponder(child)}
+                                        onPress={() => setSelectedChild(child)}
                                     />
                                 ))}
-                                {!columnChildren.length && <ThemedText style={styles.emptyColumn}>Drop here</ThemedText>}
+                                {!columnChildren.length && (
+                                    <ThemedText style={[styles.emptyColumn, styles.emptyColumnCompact]}>No children</ThemedText>
+                                )}
                             </View>
                         </View>
                     );
                 })}
-            </ScrollView>
+            </View>
+            <Modal visible={selectedChild !== null} transparent animationType="fade" onRequestClose={() => setSelectedChild(null)}>
+                <Pressable style={styles.modalOverlay} onPress={() => setSelectedChild(null)}>
+                    <Pressable style={styles.activityMenu} onPress={(event) => event.stopPropagation()}>
+                        <ThemedText style={styles.activityMenuTitle}>{selectedChild?.name}&apos;s activity</ThemedText>
+                        {categories.map((category) => (
+                            <Pressable
+                                key={category.name}
+                                style={({ pressed }) => [styles.activityOption, pressed && styles.pressed]}
+                                onPress={() => selectActivity(category.name)}
+                            >
+                                <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
+                                <ThemedText style={styles.activityOptionText}>{category.shortName}</ThemedText>
+                                {selectedChild?.segments[selectedChild.segments.length - 1].category === category.name && (
+                                    <ThemedText style={[styles.activityOptionCheck, { color: category.color }]}>Current</ThemedText>
+                                )}
+                            </Pressable>
+                        ))}
+                    </Pressable>
+                </Pressable>
+            </Modal>
         </>
     );
 }
