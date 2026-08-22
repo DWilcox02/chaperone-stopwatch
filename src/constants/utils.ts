@@ -5,6 +5,15 @@ function formatDuration(milliseconds: number) {
     return hours ? `${hours}h ${minutes.toString().padStart(2, "0")}m` : `${minutes}m`;
 }
 
+function formatTimer(milliseconds: number) {
+    const totalSeconds = Math.floor(Math.max(0, milliseconds) / 1000);
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const seconds = totalSeconds % 60;
+    return `${hours.toString()} : ${minutes.toString()} : ${seconds}`;
+}
+
 function formatHoursMinutes(milliseconds: number) {
     const totalMinutes = Math.floor(Math.max(0, milliseconds) / 60000);
     const hours = Math.floor(totalMinutes / 60);
@@ -24,4 +33,4 @@ function formatClock(timestamp: number) {
 
 const now = Date.now();
 
-export { formatDuration, formatHoursMinutes, formatClock, formatHoursRounded, now };
+export { formatDuration, formatHoursMinutes, formatClock, formatHoursRounded, formatTimer, now };

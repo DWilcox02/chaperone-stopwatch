@@ -4,7 +4,7 @@ import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
 import categories from "@/constants/categories";
 import styles from "@/constants/styles";
-import { formatDuration } from "@/constants/utils";
+import { formatDuration, formatTimer } from "@/constants/utils";
 import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
 
 const pickerStyles = StyleSheet.create({
@@ -102,7 +102,7 @@ export default function ChildScreen() {
                                     })}
                                     <View style={pickerStyles.childTimer}>
                                         <ThemedText style={pickerStyles.childTimerLabel}>Current</ThemedText>
-                                        <ThemedText style={pickerStyles.childTimerValue}>{formatDuration(activeDuration)}</ThemedText>
+                                        <ThemedText style={pickerStyles.childTimerValue}>{formatTimer(activeDuration)}</ThemedText>
                                     </View>
                                 </View>
                             );
