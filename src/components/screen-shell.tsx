@@ -7,15 +7,17 @@ import styles from "@/constants/styles";
 type ScreenShellProps = {
     children: ReactNode;
     keyboardShouldPersistTaps?: "always" | "never" | "handled";
+    verticalScrollEnabled?: boolean;
 };
 
-export function ScreenShell({ children, keyboardShouldPersistTaps }: ScreenShellProps) {
+export function ScreenShell({ children, keyboardShouldPersistTaps, verticalScrollEnabled = true }: ScreenShellProps) {
     return (
         <View style={styles.container}>
             <SafeAreaView style={styles.safeArea}>
                 <ScrollView
                     contentContainerStyle={styles.content}
                     keyboardShouldPersistTaps={keyboardShouldPersistTaps}
+                    scrollEnabled={verticalScrollEnabled}
                     showsVerticalScrollIndicator={true}
                 >
                     {children}

@@ -25,8 +25,10 @@ const pickerStyles = StyleSheet.create({
         justifyContent: "center",
         paddingVertical: 7,
         gap: 2,
-        borderBottomWidth: 1,
-        borderBottomColor: "#E5E0D8",
+        marginBottom: 6,
+        borderWidth: 1.5,
+        borderColor: "#D8D1C6",
+        borderRadius: 8,
         backgroundColor: "#FBF9F5",
     },
     categoryButtonActive: { borderBottomColor: "transparent" },
@@ -47,7 +49,7 @@ export default function ChildScreen() {
 	const { children, currentTime, assignChildActivity } = useStopwatchSession();
 
 	return (
-        <ScreenShell keyboardShouldPersistTaps="handled">
+        <ScreenShell keyboardShouldPersistTaps="handled" verticalScrollEnabled={false}>
             <ScrollView horizontal showsHorizontalScrollIndicator={true} bounces={false}>
                 <View style={pickerStyles.table}>
                     <View style={pickerStyles.childColumns}>
@@ -77,6 +79,7 @@ export default function ChildScreen() {
                                                 onPress={() => assignChildActivity(child.id, category.name)}
                                                 style={({ pressed }) => [
                                                     pickerStyles.categoryButton,
+                                                    { borderColor: category.darkColor },
                                                     isActive && [pickerStyles.categoryButtonActive, { backgroundColor: category.color }],
                                                     pressed && styles.pressed,
                                                 ]}
@@ -84,7 +87,7 @@ export default function ChildScreen() {
                                                     <ThemedText
                                                         style={[
                                                             pickerStyles.categoryButtonText,
-                                                            { color: isActive ? "#FFFFFF" : category.color },
+                                                            { color: isActive ? "#FFFFFF" : category.darkColor },
                                                         ]}
                                                     >
                                                         {category.shortName}
@@ -101,7 +104,6 @@ export default function ChildScreen() {
                                         );
                                     })}
                                     <View style={pickerStyles.childTimer}>
-                                        <ThemedText style={pickerStyles.childTimerLabel}>Current</ThemedText>
                                         <ThemedText style={pickerStyles.childTimerValue}>{formatTimer(activeDuration)}</ThemedText>
                                     </View>
                                 </View>
