@@ -11,6 +11,7 @@ type StopwatchSession = {
     totalDuration: number;
     assignChildActivity: (childId: string, category: Category) => void;
     assignGroupActivity: (groupId: string, category: Category) => void;
+    mergeActivity: (category: Category) => void;
     addChildToGroup: (childId: string, groupId: string) => void;
     createGroup: (childId: string) => string;
     sessionError: string | null;
@@ -25,6 +26,7 @@ type SessionAction =
     | { type: "assign-child"; childId: string; category: Category; timestamp: number; groupId: string }
     | { type: "assign-group"; groupId: string; category: Category; timestamp: number }
     | { type: "assign-activity"; childIds: string[]; category: Category; timestamp: number }
+    | { type: "merge-activity"; category: Category }
     | { type: "move-child"; childId: string; groupId: string; timestamp: number }
     | { type: "create-group"; childId: string; groupId: string }
     | { type: "error"; message: string }
@@ -97,6 +99,29 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
                 children: updateActivity(state.children, childIds, action.category, action.timestamp),
                 sessionError: null,
             };
+        }
+        if (action.type === "merge-activity") {
+            const activityChildIds = state.children
+                .filter((child) => child.segments[child.segments.length - 1]?.category === action.category)
+                .map((child) => child.id);
+            if (activityChildIds.length < 2) return { ...state, sessionError: null };
+            const targetGroup = state.groups.find((group) =>
+                group.childIds.some((childId) => activityChildIds.includes(childId)),
+            );
+            if (!targetGroup) return { ...state, sessionError: "Those children are not assigned to a group." };
+            const activityIds = new Set(activityChildIds);
+            const groups = state.groups
+                .map((group) => ({
+                    ...group,
+                    childIds: group.childIds.filter((childId) => !activityIds.has(childId)),
+                }))
+                .map((group) =>
+                    group.id === targetGroup.id
+                        ? { ...group, childIds: [...group.childIds, ...activityChildIds] }
+                        : group,
+                )
+                .filter((group) => group.childIds.length > 0);
+            return { ...state, groups, sessionError: null };
         }
         if (action.type === "move-child") {
             const child = state.children.find((candidate) => candidate.id === action.childId);
@@ -189,6 +214,12 @@ function useStopwatchSessionState(): StopwatchSession {
         },
         [nextTimestamp, safeDispatch],
     );
+    const mergeActivity = useCallback(
+        (category: Category) => {
+            safeDispatch({ type: "merge-activity", category });
+        },
+        [safeDispatch],
+    );
     const addChildToGroup = useCallback(
         (childId: string, groupId: string) => {
             safeDispatch({ type: "move-child", childId, groupId, timestamp: nextTimestamp() });
@@ -224,6 +255,7 @@ function useStopwatchSessionState(): StopwatchSession {
         totalDuration,
         assignChildActivity,
         assignGroupActivity,
+        mergeActivity,
         addChildToGroup,
         createGroup,
         clearSessionError,

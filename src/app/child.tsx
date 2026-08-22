@@ -1,83 +1,93 @@
-import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Dropdown from "react-native-input-select";
 
+import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
 import categories from "@/constants/categories";
 import styles from "@/constants/styles";
-import type { Child } from "@/constants/types";
 import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
 
 const pickerStyles = StyleSheet.create({
-	picker: { marginBottom: 28 },
-	pickerLabel: { color: "#9A948A", fontSize: 10, fontWeight: "800", letterSpacing: 1.1, marginBottom: 9 },
-    dropdown: {
-        minHeight: 52,
-        paddingHorizontal: 16,
-        borderWidth: 1,
-        borderColor: "#D8D1C6",
-        borderRadius: 12,
-        backgroundColor: "#FFFDF9",
+    table: { flexDirection: "row", marginBottom: 20 },
+    categoryLabels: { width: 88, paddingTop: 48 },
+    categoryLabel: {
+        height: 46,
+        justifyContent: "center",
+        paddingRight: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5E0D8",
     },
-    dropdownContainer: { marginBottom: 0 },
-	selectedMeta: { color: "#716D65", fontSize: 12, marginTop: 8 },
+    categoryLabelText: { color: "#716D65", fontSize: 10, fontWeight: "800" },
+    childColumns: { flexDirection: "row", gap: 8 },
+    childColumn: { width: 112 },
+    childHeader: {
+        height: 48,
+        justifyContent: "center",
+        paddingHorizontal: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: "#B8B1A6",
+    },
+    childName: { color: "#252A27", fontSize: 13, fontWeight: "800" },
+    categoryButton: {
+        height: 46,
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: "#E5E0D8",
+        backgroundColor: "#FBF9F5",
+    },
+    categoryButtonActive: { backgroundColor: "#FFFDF9" },
+    categoryDot: { width: 8, height: 8, borderRadius: 4, marginRight: 7 },
+    check: { fontSize: 10, fontWeight: "800" },
 });
 
 export default function ChildScreen() {
 	const { children, assignChildActivity } = useStopwatchSession();
-	const [selectedChildId, setSelectedChildId] = useState(children[0]?.id ?? "");
-
-	const selectedChild = children.find((child) => child.id === selectedChildId) ?? children[0];
-    const childOptions = children.map((child) => ({
-        label: `${child.name}`,
-        value: child.id,
-    }));
 
 	return (
-        <SafeAreaView style={styles.safeArea}>
-            <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-
-                <View style={pickerStyles.picker}>
-                    <ThemedText style={pickerStyles.pickerLabel}>CHILD</ThemedText>
-                    <Dropdown
-                        options={childOptions}
-                        selectedValue={selectedChildId}
-                        onValueChange={(value) => setSelectedChildId(String(value))}
-                        placeholder="Select a child"
-                        primaryColor="#E7684A"
-                        dropdownStyle={pickerStyles.dropdown}
-                        dropdownContainerStyle={pickerStyles.dropdownContainer}
-                    />
-                </View>
-
-                <View style={styles.categoryGrid}>
-                    {categories.map((category) => {
-                        const activeCategory = selectedChild?.segments[selectedChild.segments.length - 1]?.category;
-                        const isActive = activeCategory === category.name;
-                        const prominent = category.prominent ?? false;
-                        return (
-                            <Pressable
-                                key={category.name}
-                                disabled={!selectedChild}
-                                onPress={() => selectedChild && assignChildActivity(selectedChild.id, category.name)}
-                                style={({ pressed }) => [
-                                    styles.categoryButton,
-                                    isActive && { borderColor: category.color, backgroundColor: "#FFFDF9" },
-                                    pressed && styles.pressed,
-                                    prominent && styles.categoryProminent
-                                ]}
-                            >
-                                <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
-                                <ThemedText style={[styles.categoryText, isActive && styles.categoryTextActive]}>
-                                    {category.shortName}
-                                </ThemedText>
-                                {isActive && <ThemedText style={[styles.check, { color: category.color }]}>OK</ThemedText>}
-                            </Pressable>
-                        );
-                    })}
+        <ScreenShell keyboardShouldPersistTaps="handled">
+            <ScrollView horizontal showsHorizontalScrollIndicator={true} bounces={false}>
+                <View style={pickerStyles.table}>
+                    <View style={pickerStyles.categoryLabels}>
+                        {categories.map((category) => (
+                            <View key={category.name} style={pickerStyles.categoryLabel}>
+                                <ThemedText style={pickerStyles.categoryLabelText}>{category.shortName}</ThemedText>
+                            </View>
+                        ))}
+                    </View>
+                    <View style={pickerStyles.childColumns}>
+                        {children.map((child) => {
+                            const activeCategory = child.segments[child.segments.length - 1]?.category;
+                            return (
+                                <View key={child.id} style={pickerStyles.childColumn}>
+                                    <View style={pickerStyles.childHeader}>
+                                        <ThemedText style={pickerStyles.childName}>{child.name}</ThemedText>
+                                    </View>
+                                    {categories.map((category) => {
+                                        const isActive = activeCategory === category.name;
+                                        return (
+                                            <Pressable
+                                                key={category.name}
+                                                onPress={() => assignChildActivity(child.id, category.name)}
+                                                style={({ pressed }) => [
+                                                    pickerStyles.categoryButton,
+                                                    isActive && pickerStyles.categoryButtonActive,
+                                                    pressed && styles.pressed,
+                                                ]}
+                                            >
+                                                <View style={[pickerStyles.categoryDot, { backgroundColor: category.color }]} />
+                                                {isActive && (
+                                                    <ThemedText style={[pickerStyles.check, { color: category.color }]}>OK</ThemedText>
+                                                )}
+                                            </Pressable>
+                                        );
+                                    })}
+                                </View>
+                            );
+                        })}
+                    </View>
                 </View>
             </ScrollView>
-        </SafeAreaView>
+        </ScreenShell>
 	);
 }

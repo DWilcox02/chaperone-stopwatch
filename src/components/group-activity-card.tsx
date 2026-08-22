@@ -1,4 +1,4 @@
-import { Pressable, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { SymbolView } from "expo-symbols";
 
 import { ChildActivityCard } from "@/components/child-activity-card";
@@ -28,12 +28,17 @@ export function GroupActivityCard({
 
     return (
         <View style={styles.groupCard}>
-            <Pressable
-                style={({ pressed }) => [styles.groupHeader, pressed && styles.pressed]}
-                onPress={() => onSelectGroup(group)}
-            >
-                <SymbolView name="arrow.right.arrow.left.circle" size={30} tintColor={category.color} />
-            </Pressable>
+            <View style={styles.groupHeader}>
+                <Text style={styles.groupName} numberOfLines={1} ellipsizeMode="tail">
+                    {groupChildren.map((child) => child.name).join(", ")}
+                </Text>
+                <Pressable
+                    style={({ pressed }) => [styles.mergeActivityButton, pressed && styles.pressed]}
+                    onPress={() => onSelectGroup(group)}
+                >
+                    <SymbolView name="arrow.right.arrow.left.circle" size={30} tintColor={category.color} />
+                </Pressable>
+            </View>
             {groupChildren.map((child) => {
                 const activeSegment = child.segments[child.segments.length - 1];
                 if (!activeSegment) return null;

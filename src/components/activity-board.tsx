@@ -18,6 +18,7 @@ type ActivityBoardProps = {
     totalDuration: number;
     onAssignChildActivity: (childId: string, category: Category) => void;
     onAssignGroupActivity: (groupId: string, category: Category) => void;
+    onMergeActivity: (category: Category) => void;
     onAddChildToGroup: (childId: string, groupId: string) => void;
     onCreateGroup: (childId: string) => string;
 };
@@ -29,6 +30,7 @@ export function ActivityBoard({
     totalDuration,
     onAssignChildActivity,
     onAssignGroupActivity,
+    onMergeActivity,
     onAddChildToGroup,
     onCreateGroup,
 }: ActivityBoardProps) {
@@ -48,6 +50,7 @@ export function ActivityBoard({
                             currentTime={currentTime}
                             onSelectGroup={setSelectedGroup}
                             onSelectChild={setSelectedChild}
+                            onMergeActivity={onMergeActivity}
                         />
                     );
                 })}

@@ -13,6 +13,15 @@ export default function AppTabs() {
       backgroundColor={colors.background}
       indicatorColor={colors.backgroundElement}
       labelStyle={{ selected: { color: colors.text } }}>
+      <NativeTabs.Trigger name="child">
+        <NativeTabs.Trigger.Label>Timers</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          sf={{ default: 'stopwatch', selected: 'stopwatch.fill' }}
+          md="menu_book"
+        />
+      </NativeTabs.Trigger>
+
+
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Groups</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
@@ -20,7 +29,7 @@ export default function AppTabs() {
           md="menu_book"
         />
       </NativeTabs.Trigger>
-
+      
       <NativeTabs.Trigger name="log">
         <NativeTabs.Trigger.Label>Log</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
@@ -28,14 +37,7 @@ export default function AppTabs() {
           md="menu_book"
         />
       </NativeTabs.Trigger>
-
-      <NativeTabs.Trigger name="child">
-        <NativeTabs.Trigger.Label>Child</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          sf={{ default: 'person', selected: 'person.fill' }}
-          md="menu_book"
-        />
-      </NativeTabs.Trigger>
     </NativeTabs>
+
   );
 }

@@ -1,4 +1,5 @@
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
+import { SymbolView } from "expo-symbols";
 
 import { GroupActivityCard } from "@/components/group-activity-card";
 import { ThemedText } from "@/components/themed-text";
@@ -12,6 +13,7 @@ type ActivityColumnProps = {
     currentTime: number;
     onSelectGroup: (group: Group) => void;
     onSelectChild: (child: Child) => void;
+    onMergeActivity: (category: Category) => void;
 };
 
 export function ActivityColumn({
@@ -21,6 +23,7 @@ export function ActivityColumn({
     currentTime,
     onSelectGroup,
     onSelectChild,
+    onMergeActivity,
 }: ActivityColumnProps) {
     const columnGroups = groups.filter((group) => (
         group.childIds.some((childId) => {
@@ -40,6 +43,15 @@ export function ActivityColumn({
             <View style={styles.activityHeader}>
                 <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
                 <ThemedText style={styles.activityTitle}>{category.shortName}</ThemedText>
+                <Pressable
+                    accessibilityLabel={`Merge all children in ${category.name}`}
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    onPress={() => onMergeActivity(category.name)}
+                    style={({ pressed }) => [styles.mergeActivityButton, pressed && styles.pressed]}
+                >
+                    <SymbolView name="person.3.fill" size={18} tintColor={category.color} />
+                </Pressable>
             </View>
             <View style={[styles.activityGroup, !columnGroups.length && styles.activityGroupEmpty]}>
                 {columnGroups.map((group) => {

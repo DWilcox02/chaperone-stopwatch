@@ -1,10 +1,5 @@
-import { ScrollView, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
 import { ActivityBoard } from "@/components/activity-board";
-import { ActivityLogCard } from "@/components/activity-log-card";
-import { ThemedText } from "@/components/themed-text";
-import styles from "@/constants/styles";
+import { ScreenShell } from "@/components/screen-shell";
 import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
 
 
@@ -16,31 +11,24 @@ export default function StopwatchScreen() {
         totalDuration,
         assignChildActivity,
         assignGroupActivity,
+        mergeActivity,
         addChildToGroup,
         createGroup,
     } = useStopwatchSession();
 
     return (
-        <View style={styles.container}>
-            <SafeAreaView style={styles.safeArea}>
-                <ScrollView
-                    contentContainerStyle={styles.content}
-                    showsVerticalScrollIndicator={true}
-                >
-
-                    <ActivityBoard
-                        children={children}
-                        groups={groups}
-                        currentTime={currentTime}
-                        totalDuration={totalDuration}
-                        onAssignChildActivity={assignChildActivity}
-                        onAssignGroupActivity={assignGroupActivity}
-                        onAddChildToGroup={addChildToGroup}
-                        onCreateGroup={createGroup}
-                    />
-
-                </ScrollView>
-            </SafeAreaView>
-        </View>
+        <ScreenShell>
+            <ActivityBoard
+                children={children}
+                groups={groups}
+                currentTime={currentTime}
+                totalDuration={totalDuration}
+                onAssignChildActivity={assignChildActivity}
+                onAssignGroupActivity={assignGroupActivity}
+                onMergeActivity={mergeActivity}
+                onAddChildToGroup={addChildToGroup}
+                onCreateGroup={createGroup}
+            />
+        </ScreenShell>
     );
 }
