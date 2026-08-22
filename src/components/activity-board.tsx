@@ -7,27 +7,42 @@ import categories from "@/constants/categories";
 import styles from "@/constants/styles";
 import { formatDuration } from "@/constants/utils";
 
-import type { Category, Child } from "@/constants/types";
+import type { Category, Child, Group } from "@/constants/types";
 
 type ActivityBoardProps = {
     children: Child[];
+    groups: Group[];
     currentTime: number;
     totalDuration: number;
-    onMoveChild: (childId: string, category: Category) => void;
+    onAssignChildActivity: (childId: string, category: Category) => void;
+    onAssignGroupActivity: (groupId: string, category: Category) => void;
+    onAddChildToGroup: (childId: string, groupId: string) => void;
+    onCreateGroup: (childId: string) => void;
 };
 
 export function ActivityBoard({
     children,
+    groups,
     currentTime,
     totalDuration,
-    onMoveChild,
+    onAssignChildActivity,
+    onAssignGroupActivity,
+    onAddChildToGroup,
+    onCreateGroup,
 }: ActivityBoardProps) {
     const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+    const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
 
-    function selectActivity(category: Category) {
+    function selectChildActivity(category: Category) {
         if (!selectedChild) return;
-        onMoveChild(selectedChild.id, category);
+        onAssignChildActivity(selectedChild.id, category);
         setSelectedChild(null);
+    }
+
+    function selectGroupActivity(category: Category) {
+        if (!selectedGroup) return;
+        onAssignGroupActivity(selectedGroup.id, category);
+        setSelectedGroup(null);
     }
 
     return (
@@ -42,8 +57,11 @@ export function ActivityBoard({
 
             <View style={styles.board}>
                 {categories.map((category) => {
-                    const columnChildren = children.filter((child) => (
-                        child.segments[child.segments.length - 1].category === category.name
+                    const columnGroups = groups.filter((group) => (
+                        group.childIds.some((childId) => {
+                            const child = children.find((candidate) => candidate.id === childId);
+                            return child?.segments[child.segments.length - 1].category === category.name;
+                        })
                     ));
 
                     return (
@@ -54,20 +72,36 @@ export function ActivityBoard({
                             <View style={styles.activityHeader}>
                                 <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
                                 <ThemedText style={styles.activityTitle}>{category.shortName}</ThemedText>
-                                <ThemedText style={styles.activityCount}>{columnChildren.length}</ThemedText>
+                                <ThemedText style={styles.activityCount}>{columnGroups.length} groups</ThemedText>
                             </View>
-                            <View style={[styles.activityGroup, !columnChildren.length && styles.activityGroupEmpty]}>
-                                {columnChildren.map((child) => (
-                                    <ChildActivityCard
-                                        key={child.id}
-                                        child={child}
-                                        activeSegment={child.segments[child.segments.length - 1]}
-                                        category={category}
-                                        currentTime={currentTime}
-                                        onPress={() => setSelectedChild(child)}
-                                    />
-                                ))}
-                                {!columnChildren.length && (
+                            <View style={[styles.activityGroup, !columnGroups.length && styles.activityGroupEmpty]}>
+                                {columnGroups.map((group) => {
+                                    const groupChildren = group.childIds
+                                        .map((childId) => children.find((child) => child.id === childId))
+                                        .filter((child): child is Child => child !== undefined);
+                                    return (
+                                        <View key={group.id} style={styles.groupCard}>
+                                            <Pressable
+                                                style={({ pressed }) => [styles.groupHeader, pressed && styles.pressed]}
+                                                onPress={() => setSelectedGroup(group)}
+                                            >
+                                                <ThemedText style={styles.groupName}>{group.name}</ThemedText>
+                                                <ThemedText style={[styles.groupActivity, { color: category.color }]}>Change activity</ThemedText>
+                                            </Pressable>
+                                            {groupChildren.map((child) => (
+                                                <ChildActivityCard
+                                                    key={child.id}
+                                                    child={child}
+                                                    activeSegment={child.segments[child.segments.length - 1]}
+                                                    category={category}
+                                                    currentTime={currentTime}
+                                                    onPress={() => setSelectedChild(child)}
+                                                />
+                                            ))}
+                                        </View>
+                                    );
+                                })}
+                                {!columnGroups.length && (
                                     <ThemedText style={[styles.emptyColumn, styles.emptyColumnCompact]}>No children</ThemedText>
                                 )}
                             </View>
@@ -78,18 +112,60 @@ export function ActivityBoard({
             <Modal visible={selectedChild !== null} transparent animationType="fade" onRequestClose={() => setSelectedChild(null)}>
                 <Pressable style={styles.modalOverlay} onPress={() => setSelectedChild(null)}>
                     <Pressable style={styles.activityMenu} onPress={(event) => event.stopPropagation()}>
-                        <ThemedText style={styles.activityMenuTitle}>{selectedChild?.name}&apos;s activity</ThemedText>
+                        <ThemedText style={styles.activityMenuTitle}>{selectedChild?.name}</ThemedText>
+                        <ThemedText style={styles.menuLabel}>GROUP</ThemedText>
+                        {groups.filter((group) => !group.childIds.includes(selectedChild?.id ?? "")).map((group) => (
+                            <Pressable
+                                key={group.id}
+                                style={({ pressed }) => [styles.activityOption, pressed && styles.pressed]}
+                                onPress={() => {
+                                    if (selectedChild) onAddChildToGroup(selectedChild.id, group.id);
+                                    setSelectedChild(null);
+                                }}
+                            >
+                                <ThemedText style={styles.activityOptionText}>{group.name}</ThemedText>
+                                <ThemedText style={styles.activityOptionCheck}>{group.childIds.length} children</ThemedText>
+                            </Pressable>
+                        ))}
+                        <Pressable
+                            style={({ pressed }) => [styles.activityOption, pressed && styles.pressed]}
+                            onPress={() => {
+                                if (selectedChild) onCreateGroup(selectedChild.id);
+                                setSelectedChild(null);
+                            }}
+                        >
+                            <ThemedText style={styles.activityOptionText}>New group with {selectedChild?.name}</ThemedText>
+                        </Pressable>
+                        <ThemedText style={styles.menuLabel}>ACTIVITY</ThemedText>
                         {categories.map((category) => (
                             <Pressable
                                 key={category.name}
                                 style={({ pressed }) => [styles.activityOption, pressed && styles.pressed]}
-                                onPress={() => selectActivity(category.name)}
+                                onPress={() => selectChildActivity(category.name)}
                             >
                                 <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
                                 <ThemedText style={styles.activityOptionText}>{category.shortName}</ThemedText>
                                 {selectedChild?.segments[selectedChild.segments.length - 1].category === category.name && (
                                     <ThemedText style={[styles.activityOptionCheck, { color: category.color }]}>Current</ThemedText>
                                 )}
+                            </Pressable>
+                        ))}
+                    </Pressable>
+                </Pressable>
+            </Modal>
+            <Modal visible={selectedGroup !== null} transparent animationType="fade" onRequestClose={() => setSelectedGroup(null)}>
+                <Pressable style={styles.modalOverlay} onPress={() => setSelectedGroup(null)}>
+                    <Pressable style={styles.activityMenu} onPress={(event) => event.stopPropagation()}>
+                        <ThemedText style={styles.activityMenuTitle}>{selectedGroup?.name}</ThemedText>
+                        <ThemedText style={styles.menuLabel}>ASSIGN ACTIVITY TO GROUP</ThemedText>
+                        {categories.map((category) => (
+                            <Pressable
+                                key={category.name}
+                                style={({ pressed }) => [styles.activityOption, pressed && styles.pressed]}
+                                onPress={() => selectGroupActivity(category.name)}
+                            >
+                                <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
+                                <ThemedText style={styles.activityOptionText}>{category.shortName}</ThemedText>
                             </Pressable>
                         ))}
                     </Pressable>

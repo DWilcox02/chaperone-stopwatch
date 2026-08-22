@@ -98,6 +98,17 @@ const styles = StyleSheet.create({
     },
     activityOptionText: { flex: 1, color: "#5E5C56", fontSize: 14, fontWeight: "700" },
     activityOptionCheck: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
+    menuLabel: { color: "#9A948A", fontSize: 10, fontWeight: "800", letterSpacing: 1.1, marginTop: 12 },
+    groupCard: { gap: 8 },
+    groupHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingHorizontal: 4,
+        minHeight: 28,
+    },
+    groupName: { color: "#252A27", fontSize: 12, fontWeight: "800" },
+    groupActivity: { fontSize: 10, fontWeight: "800" },
     categoryGrid: { flexDirection: "row", flexWrap: "wrap", gap: 9, marginBottom: 28 },
     categoryButton: {
         width: "31.8%",

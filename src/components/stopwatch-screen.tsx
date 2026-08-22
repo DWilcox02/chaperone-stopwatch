@@ -8,10 +8,15 @@ import { ThemedText } from "@/components/themed-text";
 import { TotalsCard } from "@/components/totals-card";
 import { initialChildren } from "@/constants/children";
 import styles from "@/constants/styles";
-import type { Category } from "@/constants/types";
+import type { Category, Group } from "@/constants/types";
 
 export default function StopwatchScreen() {
     const [children, setChildren] = useState(initialChildren);
+    const [groups, setGroups] = useState<Group[]>(() => initialChildren.map((child, index) => ({
+        id: `group-${index + 1}`,
+        name: `Group ${index + 1}`,
+        childIds: [child.id],
+    })));
     const [currentTime, setCurrentTime] = useState(Date.now());
 
     useEffect(() => {
@@ -25,11 +30,11 @@ export default function StopwatchScreen() {
         ), 0)
     ), 0), [children, currentTime]);
 
-    function moveChild(childId: string, category: Category) {
+    function updateChildrenActivity(childIds: string[], category: Category) {
         const timestamp = Date.now();
         setCurrentTime(timestamp);
         setChildren((currentChildren) => currentChildren.map((child) => {
-            if (child.id !== childId) return child;
+            if (!childIds.includes(child.id)) return child;
             const activeSegment = child.segments[child.segments.length - 1];
             if (activeSegment.category === category) return child;
             return { ...child, segments: [
@@ -38,6 +43,36 @@ export default function StopwatchScreen() {
                 { category, startedAt: timestamp },
             ] };
         }));
+    }
+
+    function assignChildActivity(childId: string, category: Category) {
+        setGroups((currentGroups) => [
+            ...currentGroups.filter((group) => !group.childIds.includes(childId)),
+            { id: `group-${Date.now()}`, name: `Group ${currentGroups.length + 1}`, childIds: [childId] },
+        ]);
+        updateChildrenActivity([childId], category);
+    }
+
+    function assignGroupActivity(groupId: string, category: Category) {
+        const group = groups.find((candidate) => candidate.id === groupId);
+        if (group) updateChildrenActivity(group.childIds, category);
+    }
+
+    function addChildToGroup(childId: string, groupId: string) {
+        const targetGroup = groups.find((group) => group.id === groupId);
+        if (!targetGroup) return;
+        const targetChild = children.find((child) => targetGroup.childIds.includes(child.id));
+        setGroups((currentGroups) => currentGroups
+            .filter((group) => !group.childIds.includes(childId) || group.id === groupId)
+            .map((group) => group.id === groupId ? { ...group, childIds: [...group.childIds, childId] } : group));
+        if (targetChild) updateChildrenActivity([childId], targetChild.segments[targetChild.segments.length - 1].category);
+    }
+
+    function createGroup(childId: string) {
+        setGroups((currentGroups) => [
+            ...currentGroups.filter((group) => !group.childIds.includes(childId)),
+            { id: `group-${Date.now()}`, name: `Group ${currentGroups.length + 1}`, childIds: [childId] },
+        ]);
     }
 
     return (
@@ -59,9 +94,13 @@ export default function StopwatchScreen() {
 
                     <ActivityBoard
                         children={children}
+                        groups={groups}
                         currentTime={currentTime}
                         totalDuration={totals}
-                        onMoveChild={moveChild}
+                        onAssignChildActivity={assignChildActivity}
+                        onAssignGroupActivity={assignGroupActivity}
+                        onAddChildToGroup={addChildToGroup}
+                        onCreateGroup={createGroup}
                     />
 
                     <View style={styles.sectionHeader}>

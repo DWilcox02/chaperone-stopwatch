@@ -8,5 +8,10 @@ type Child = {
     segments: Segment[];
     allowedHours: number;
 };
+type Group = {
+    id: string;
+    name: string;
+    childIds: string[];
+};
 
-export type { Category, Segment, Child };
+export type { Category, Segment, Child, Group };
