@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, createElement, useContext, useEffect, useMemo, useState } from "react";
 
 import { initialChildren } from "@/constants/children";
 import type { Category, Child, Group } from "@/constants/types";
@@ -142,11 +142,7 @@ function useStopwatchSessionState(): StopwatchSession {
 export function StopwatchSessionProvider({ children }: { children: React.ReactNode }) {
     const session = useStopwatchSessionState();
 
-    return (
-        <StopwatchSessionContext.Provider value={session}>
-            {children}
-        </StopwatchSessionContext.Provider>
-    );
+    return createElement(StopwatchSessionContext.Provider, { value: session }, children);
 }
 
 export function useStopwatchSession(): StopwatchSession {

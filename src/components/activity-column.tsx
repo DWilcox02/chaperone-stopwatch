@@ -1,4 +1,5 @@
 import { Pressable, View } from "react-native";
+import { SymbolView } from "expo-symbols";
 
 import { ChildActivityCard } from "@/components/child-activity-card";
 import { ThemedText } from "@/components/themed-text";
@@ -30,7 +31,7 @@ export function ActivityColumn({
     ));
 
     return (
-        (columnGroups.length && 
+        (columnGroups.length > 0 &&
         <View style={styles.activityColumn}>
             <View style={styles.activityHeader}>
                 <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
@@ -48,8 +49,7 @@ export function ActivityColumn({
                                 style={({ pressed }) => [styles.groupHeader, pressed && styles.pressed]}
                                 onPress={() => onSelectGroup(group)}
                             >
-                                <ThemedText style={styles.groupName}>{group.name}</ThemedText>
-                                <ThemedText style={[styles.groupActivity, { color: category.color }]}>Change activity</ThemedText>
+                                <SymbolView name="pencil.circle" size={20} tintColor={category.color} />
                             </Pressable>
                             {groupChildren.map((child) => (
                                 <ChildActivityCard

@@ -36,7 +36,6 @@ export function ChildActivityCard({
                     {formatDuration((activeSegment.endedAt ?? currentTime) - activeSegment.startedAt)}
                 </ThemedText>
             </View>
-            <ThemedText style={styles.childCardRole}>{child.role}</ThemedText>
             <ThemedText style={styles.childCardHours}>
                 {formatHoursMinutes(totalTime)} / {formatHoursRounded(child.allowedHours * 60 * 60 * 1000)}
             </ThemedText>
