@@ -17,11 +17,11 @@ export default function LogScreen() {
             </View>
             <ActivityLogCard children={children} />
 
-            <View style={styles.sectionHeader}>
+            {/* <View style={styles.sectionHeader}>
                 <ThemedText style={styles.sectionTitle}>Today&apos;s totals</ThemedText>
                 <ThemedText style={styles.sectionHint}>All children</ThemedText>
             </View>
-            <TotalsCard children={children} currentTime={currentTime} />
+            <TotalsCard children={children} currentTime={currentTime} /> */}
         </SafeAreaView>
     )
 }

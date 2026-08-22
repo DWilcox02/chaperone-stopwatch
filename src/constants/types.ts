@@ -1,4 +1,14 @@
-type Category = "Performance" | "Rehearsal" | "Standby" | "Hair & Makeup" | "Tutoring" | "Meal" | "Travel" | "Wrap";
+type Category =
+    | "Performance"
+    | "Rehearsal"
+    | "Standby"
+    | "Rest"
+    | "Meal"
+    | "Travel"
+    | "Costume"
+    | "Hair & Makeup"
+    | "Tutoring"
+    | "Wrap";
 type Segment = { category: Category; startedAt: number; endedAt?: number };
 type Child = {
     id: string;

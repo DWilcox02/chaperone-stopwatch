@@ -1,7 +1,6 @@
-import { Pressable, View } from "react-native";
-import { SymbolView } from "expo-symbols";
+import { View } from "react-native";
 
-import { ChildActivityCard } from "@/components/child-activity-card";
+import { GroupActivityCard } from "@/components/group-activity-card";
 import { ThemedText } from "@/components/themed-text";
 import type { Category, Child, Group } from "@/constants/types";
 import styles from "@/constants/styles";
@@ -26,7 +25,12 @@ export function ActivityColumn({
     const columnGroups = groups.filter((group) => (
         group.childIds.some((childId) => {
             const child = children.find((candidate) => candidate.id === childId);
-            return child?.segments[child.segments.length - 1].category === category.name;
+            return (
+                child && 
+                child.segments &&
+                child.segments.length > 0 &&
+                child.segments[child.segments.length - 1].category === category.name
+            );
         })
     ));
 
@@ -36,32 +40,19 @@ export function ActivityColumn({
             <View style={styles.activityHeader}>
                 <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
                 <ThemedText style={styles.activityTitle}>{category.shortName}</ThemedText>
-                <ThemedText style={styles.activityCount}>{columnGroups.length} groups</ThemedText>
             </View>
             <View style={[styles.activityGroup, !columnGroups.length && styles.activityGroupEmpty]}>
                 {columnGroups.map((group) => {
-                    const groupChildren = group.childIds
-                        .map((childId) => children.find((child) => child.id === childId))
-                        .filter((child): child is Child => child !== undefined);
                     return (
-                        <View key={group.id} style={styles.groupCard}>
-                            <Pressable
-                                style={({ pressed }) => [styles.groupHeader, pressed && styles.pressed]}
-                                onPress={() => onSelectGroup(group)}
-                            >
-                                <SymbolView name="pencil.circle" size={20} tintColor={category.color} />
-                            </Pressable>
-                            {groupChildren.map((child) => (
-                                <ChildActivityCard
-                                    key={child.id}
-                                    child={child}
-                                    activeSegment={child.segments[child.segments.length - 1]}
-                                    category={category}
-                                    currentTime={currentTime}
-                                    onPress={() => onSelectChild(child)}
-                                />
-                            ))}
-                        </View>
+                        <GroupActivityCard
+                            key={group.id}
+                            group={group}
+                            children={children}
+                            category={category}
+                            currentTime={currentTime}
+                            onSelectGroup={onSelectGroup}
+                            onSelectChild={onSelectChild}
+                        />
                     );
                 })}
             </View>

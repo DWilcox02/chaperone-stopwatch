@@ -54,6 +54,7 @@ export function ActivityBoard({
             </View>
             <ChildActivityModal
                 child={selectedChild}
+                children={children}
                 groups={groups}
                 onClose={() => setSelectedChild(null)}
                 onAssignActivity={(category) => {
@@ -68,6 +69,7 @@ export function ActivityBoard({
             />
             <GroupActivityModal
                 group={selectedGroup}
+                children={children}
                 onClose={() => setSelectedGroup(null)}
                 onAssignActivity={(category) => {
                     if (selectedGroup) onAssignGroupActivity(selectedGroup.id, category);

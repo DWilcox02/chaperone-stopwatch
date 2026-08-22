@@ -38,7 +38,7 @@ const initialChildren: Child[] = [
     },
     {
         id: "chris",
-        name: "chris",
+        name: "Chris",
         role: "Child 01",
         color: "#E7684A",
         segments: [
@@ -64,15 +64,10 @@ const initialChildren: Child[] = [
     },
     {
         id: "malcolm",
-        name: "malcolm",
+        name: "Malcolm",
         role: "Child 01",
         color: "#E7684A",
         segments: [
-            {
-                category: "Standby",
-                startedAt: now - 5 * 60 * 60 * 1000,
-                endedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
-            },
             {
                 category: "Hair & Makeup",
                 startedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
@@ -90,33 +85,15 @@ const initialChildren: Child[] = [
     },
     {
         id: "wayne",
-        name: "wayne",
+        name: "Wayne",
         role: "Child 01",
         color: "#E7684A",
-        segments: [
-            {
-                category: "Standby",
-                startedAt: now - 5 * 60 * 60 * 1000,
-                endedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
-            },
-            {
-                category: "Hair & Makeup",
-                startedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
-                endedAt: now - 3 * 60 * 60 * 1000 - 24 * 60 * 1000,
-            },
-            {
-                category: "Performance",
-                startedAt: now - 3 * 60 * 60 * 1000 - 24 * 60 * 1000,
-                endedAt: now - 48 * 60 * 1000,
-            },
-            { category: "Tutoring", startedAt: now - 48 * 60 * 1000, endedAt: now - 18 * 60 * 1000 },
-            { category: "Standby", startedAt: now - 18 * 60 * 1000 },
-        ],
+        segments: [],
         allowedHours: 9,
     },
     {
         id: "emma",
-        name: "emma",
+        name: "Emma",
         role: "Child 01",
         color: "#E7684A",
         segments: [
@@ -124,11 +101,6 @@ const initialChildren: Child[] = [
                 category: "Standby",
                 startedAt: now - 5 * 60 * 60 * 1000,
                 endedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
-            },
-            {
-                category: "Hair & Makeup",
-                startedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
-                endedAt: now - 3 * 60 * 60 * 1000 - 24 * 60 * 1000,
             },
             {
                 category: "Performance",
@@ -142,7 +114,7 @@ const initialChildren: Child[] = [
     },
     {
         id: "casper",
-        name: "casper",
+        name: "Casper",
         role: "Child 01",
         color: "#E7684A",
         segments: [
@@ -168,7 +140,7 @@ const initialChildren: Child[] = [
     },
     {
         id: "dan",
-        name: "dan",
+        name: "Dan",
         role: "Child 01",
         color: "#E7684A",
         segments: [
@@ -194,15 +166,10 @@ const initialChildren: Child[] = [
     },
     {
         id: "juliette",
-        name: "juliette",
+        name: "Juliette",
         role: "Child 01",
         color: "#E7684A",
         segments: [
-            {
-                category: "Standby",
-                startedAt: now - 5 * 60 * 60 * 1000,
-                endedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
-            },
             {
                 category: "Hair & Makeup",
                 startedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
@@ -220,7 +187,7 @@ const initialChildren: Child[] = [
     },
     {
         id: "tracey",
-        name: "tracey",
+        name: "Tracey",
         role: "Child 01",
         color: "#E7684A",
         segments: [
@@ -232,7 +199,7 @@ const initialChildren: Child[] = [
             {
                 category: "Hair & Makeup",
                 startedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
-                endedAt: now - 3 * 60 * 60 * 1000 - 24 * 60 * 1000,
+                endedAt: now - 2 * 60 * 60 * 1000 - 24 * 60 * 1000,
             },
             {
                 category: "Performance",
@@ -240,13 +207,12 @@ const initialChildren: Child[] = [
                 endedAt: now - 48 * 60 * 1000,
             },
             { category: "Tutoring", startedAt: now - 48 * 60 * 1000, endedAt: now - 18 * 60 * 1000 },
-            { category: "Standby", startedAt: now - 18 * 60 * 1000 },
         ],
         allowedHours: 9,
     },
     {
         id: "claire",
-        name: "claire",
+        name: "Claire",
         role: "Child 01",
         color: "#E7684A",
         segments: [
@@ -259,11 +225,6 @@ const initialChildren: Child[] = [
                 category: "Hair & Makeup",
                 startedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
                 endedAt: now - 3 * 60 * 60 * 1000 - 24 * 60 * 1000,
-            },
-            {
-                category: "Performance",
-                startedAt: now - 3 * 60 * 60 * 1000 - 24 * 60 * 1000,
-                endedAt: now - 48 * 60 * 1000,
             },
             { category: "Tutoring", startedAt: now - 48 * 60 * 1000, endedAt: now - 18 * 60 * 1000 },
             { category: "Standby", startedAt: now - 18 * 60 * 1000 },
@@ -272,15 +233,10 @@ const initialChildren: Child[] = [
     },
     {
         id: "leslie",
-        name: "leslie",
+        name: "Leslie",
         role: "Child 01",
         color: "#E7684A",
         segments: [
-            {
-                category: "Standby",
-                startedAt: now - 5 * 60 * 60 * 1000,
-                endedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,
-            },
             {
                 category: "Hair & Makeup",
                 startedAt: now - 4 * 60 * 60 * 1000 - 12 * 60 * 1000,

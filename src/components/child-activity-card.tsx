@@ -8,7 +8,7 @@ import type { Category, Child, Segment } from "@/constants/types";
 
 type ChildActivityCardProps = {
     child: Child;
-    activeSegment: Segment;
+    activeSegment?: Segment;
     category: { name: Category; color: string };
     currentTime: number;
     onPress: () => void;
@@ -21,6 +21,8 @@ export function ChildActivityCard({
     currentTime,
     onPress,
 }: ChildActivityCardProps) {
+    if (!activeSegment) return null;
+
     const totalTime = child.segments.reduce((total, segment) => (
         total + (segment.endedAt ?? currentTime) - segment.startedAt
     ), 0);
@@ -39,7 +41,6 @@ export function ChildActivityCard({
             <ThemedText style={styles.childCardHours}>
                 {formatHoursMinutes(totalTime)} / {formatHoursRounded(child.allowedHours * 60 * 60 * 1000)}
             </ThemedText>
-            <ThemedText style={styles.childCardStarted}>Since {formatClock(activeSegment.startedAt)}</ThemedText>
         </Pressable>
     );
 }
