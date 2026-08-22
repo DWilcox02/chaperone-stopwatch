@@ -4,23 +4,15 @@ import { ScreenShell } from "@/components/screen-shell";
 import { ThemedText } from "@/components/themed-text";
 import categories from "@/constants/categories";
 import styles from "@/constants/styles";
+import { formatDuration } from "@/constants/utils";
 import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
 
 const pickerStyles = StyleSheet.create({
     table: { flexDirection: "row", marginBottom: 20 },
-    categoryLabels: { width: 88, paddingTop: 48 },
-    categoryLabel: {
-        height: 46,
-        justifyContent: "center",
-        paddingRight: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: "#E5E0D8",
-    },
-    categoryLabelText: { color: "#716D65", fontSize: 10, fontWeight: "800" },
     childColumns: { flexDirection: "row", gap: 8 },
     childColumn: { width: 112 },
     childHeader: {
-        height: 48,
+        height: 52,
         justifyContent: "center",
         paddingHorizontal: 8,
         borderBottomWidth: 1,
@@ -28,36 +20,43 @@ const pickerStyles = StyleSheet.create({
     },
     childName: { color: "#252A27", fontSize: 13, fontWeight: "800" },
     categoryButton: {
-        height: 46,
-        flexDirection: "row",
+        height: 56,
         alignItems: "center",
-        paddingHorizontal: 8,
+        justifyContent: "center",
+        paddingVertical: 7,
+        gap: 2,
         borderBottomWidth: 1,
         borderBottomColor: "#E5E0D8",
         backgroundColor: "#FBF9F5",
     },
-    categoryButtonActive: { backgroundColor: "#FFFDF9" },
-    categoryDot: { width: 8, height: 8, borderRadius: 4, marginRight: 7 },
-    check: { fontSize: 10, fontWeight: "800" },
+    categoryButtonActive: { borderBottomColor: "transparent" },
+    categoryButtonText: { fontSize: 10, fontWeight: "800" },
+    categoryDuration: { fontSize: 9, fontWeight: "600" },
+    childTimer: {
+        height: 44,
+        justifyContent: "center",
+        alignItems: "center",
+        borderTopWidth: 1,
+        borderTopColor: "#B8B1A6",
+    },
+    childTimerLabel: { color: "#716D65", fontSize: 9, fontWeight: "700" },
+    childTimerValue: { color: "#252A27", fontSize: 13, fontWeight: "800" },
 });
 
 export default function ChildScreen() {
-	const { children, assignChildActivity } = useStopwatchSession();
+	const { children, currentTime, assignChildActivity } = useStopwatchSession();
 
 	return (
         <ScreenShell keyboardShouldPersistTaps="handled">
             <ScrollView horizontal showsHorizontalScrollIndicator={true} bounces={false}>
                 <View style={pickerStyles.table}>
-                    <View style={pickerStyles.categoryLabels}>
-                        {categories.map((category) => (
-                            <View key={category.name} style={pickerStyles.categoryLabel}>
-                                <ThemedText style={pickerStyles.categoryLabelText}>{category.shortName}</ThemedText>
-                            </View>
-                        ))}
-                    </View>
                     <View style={pickerStyles.childColumns}>
                         {children.map((child) => {
-                            const activeCategory = child.segments[child.segments.length - 1]?.category;
+                            const activeSegment = child.segments[child.segments.length - 1];
+                            const activeCategory = activeSegment?.category;
+                            const activeDuration = activeSegment
+                                ? (activeSegment.endedAt ?? currentTime) - activeSegment.startedAt
+                                : 0;
                             return (
                                 <View key={child.id} style={pickerStyles.childColumn}>
                                     <View style={pickerStyles.childHeader}>
@@ -65,23 +64,46 @@ export default function ChildScreen() {
                                     </View>
                                     {categories.map((category) => {
                                         const isActive = activeCategory === category.name;
+                                        const categoryDuration = child.segments.reduce(
+                                            (total, segment) =>
+                                                segment.category === category.name
+                                                    ? total + Math.max(0, (segment.endedAt ?? currentTime) - segment.startedAt)
+                                                    : total,
+                                            0,
+                                        );
                                         return (
                                             <Pressable
                                                 key={category.name}
                                                 onPress={() => assignChildActivity(child.id, category.name)}
                                                 style={({ pressed }) => [
                                                     pickerStyles.categoryButton,
-                                                    isActive && pickerStyles.categoryButtonActive,
+                                                    isActive && [pickerStyles.categoryButtonActive, { backgroundColor: category.color }],
                                                     pressed && styles.pressed,
                                                 ]}
                                             >
-                                                <View style={[pickerStyles.categoryDot, { backgroundColor: category.color }]} />
-                                                {isActive && (
-                                                    <ThemedText style={[pickerStyles.check, { color: category.color }]}>OK</ThemedText>
-                                                )}
+                                                    <ThemedText
+                                                        style={[
+                                                            pickerStyles.categoryButtonText,
+                                                            { color: isActive ? "#FFFFFF" : category.color },
+                                                        ]}
+                                                    >
+                                                        {category.shortName}
+                                                    </ThemedText>
+                                                    <ThemedText
+                                                        style={[
+                                                            pickerStyles.categoryDuration,
+                                                            { color: isActive ? "#FFFFFF" : "#716D65" },
+                                                        ]}
+                                                    >
+                                                        {formatDuration(categoryDuration)}
+                                                    </ThemedText>
                                             </Pressable>
                                         );
                                     })}
+                                    <View style={pickerStyles.childTimer}>
+                                        <ThemedText style={pickerStyles.childTimerLabel}>Current</ThemedText>
+                                        <ThemedText style={pickerStyles.childTimerValue}>{formatDuration(activeDuration)}</ThemedText>
+                                    </View>
                                 </View>
                             );
                         })}
