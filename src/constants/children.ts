@@ -26,14 +26,16 @@ const initialChildren: Child[] = [
             { category: "Tutoring", startedAt: now - 48 * 60 * 1000, endedAt: now - 18 * 60 * 1000 },
             { category: "Standby", startedAt: now - 18 * 60 * 1000 },
         ],
+        allowedHours: 9,
     },
-    // {
-    //     id: "jack",
-    //     name: "Jack",
-    //     role: "Child 02",
-    //     color: "#4B9B91",
-    //     segments: [{ category: "Standby", startedAt: now - 42 * 60 * 1000 }],
-    // },
+    {
+        id: "jack",
+        name: "Jack",
+        role: "Child 02",
+        color: "#4B9B91",
+        segments: [{ category: "Standby", startedAt: now - 42 * 60 * 1000 }],
+        allowedHours: 4,
+    },
 ];
 
-export default initialChildren;
+export { initialChildren };

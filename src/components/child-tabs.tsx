@@ -1,32 +1,37 @@
-import { SetStateAction, useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SetStateAction } from 'react';
+import { Pressable, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { BottomTabInset, MaxContentWidth } from '@/constants/theme';
-import type { Category, Segment, Child } from "../constants/types";
+import type { Child } from "../constants/types";
 import styles from '@/constants/styles';
-import { formatClock, formatDuration } from '@/constants/utils';
+import { formatHoursMinutes, formatHoursRounded } from '@/constants/utils';
 import { Dispatch } from 'react';
 
 interface ChildCardProps {
     child: Child,
     selectedChild: Child,
-    setSelectedChildId: Dispatch<SetStateAction<string>>
+    setSelectedChildId: Dispatch<SetStateAction<string>>,
+    currentTime: number,
 }
 
 interface ChildTabsProps {
     children: Child[],
     selectedChild: Child,
-    setSelectedChildId: Dispatch<SetStateAction<string>>
+    setSelectedChildId: Dispatch<SetStateAction<string>>,
+    currentTime: number,
 }
 
 
 function ChildCard({
     child,
     selectedChild,
-    setSelectedChildId
+    setSelectedChildId,
+    currentTime,
 } : ChildCardProps) {
+    const workedMilliseconds = child.segments.reduce((total, segment) => (
+        total + (segment.endedAt ?? currentTime) - segment.startedAt
+    ), 0);
+
     return (
         <Pressable
             onPress={() => setSelectedChildId(child.id)}
@@ -40,13 +45,18 @@ function ChildCard({
                     {child.name[0]}
                 </ThemedText>
             </View>
-            <View>
-                <ThemedText style={styles.childName}>
-                    {child.name}
+            <View style={styles.childDetails}>
+                <ThemedText style={styles.childHours}>
+                    {formatHoursMinutes(workedMilliseconds)} / {formatHoursRounded(child.allowedHours * 60 * 60 * 1000)}
                 </ThemedText>
-                <ThemedText style={styles.childRole}>
-                    {child.role}
-                </ThemedText>
+                <View>
+                    <ThemedText style={styles.childName}>
+                        {child.name}
+                    </ThemedText>
+                    <ThemedText style={styles.childRole}>
+                        {child.role}
+                    </ThemedText>
+                </View>
             </View>
         </Pressable>
     )
@@ -57,7 +67,8 @@ function ChildCard({
 export default function ChildTabs({
     children,
     selectedChild,
-    setSelectedChildId
+    setSelectedChildId,
+    currentTime,
 } : ChildTabsProps) {
     return (
         <View style={styles.childTabs}>
@@ -67,6 +78,7 @@ export default function ChildTabs({
                     child={child}
                     selectedChild={selectedChild}
                     setSelectedChildId={setSelectedChildId}
+                    currentTime={currentTime}
                 />
             ))}
         </View>
