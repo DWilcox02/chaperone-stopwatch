@@ -30,6 +30,7 @@ export function ActivityColumn({
     ));
 
     return (
+        (columnGroups.length && 
         <View style={styles.activityColumn}>
             <View style={styles.activityHeader}>
                 <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
@@ -63,10 +64,7 @@ export function ActivityColumn({
                         </View>
                     );
                 })}
-                {!columnGroups.length && (
-                    <ThemedText style={[styles.emptyColumn, styles.emptyColumnCompact]}>No children</ThemedText>
-                )}
             </View>
-        </View>
+        </View>)
     );
 }

@@ -8,6 +8,10 @@ import { TotalsCard } from "@/components/totals-card";
 import styles from "@/constants/styles";
 import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
 
+// interface StopwatchScreenProps {
+//     children: Child[]
+// }
+
 export default function StopwatchScreen() {
     const {
         children,
@@ -58,7 +62,6 @@ export default function StopwatchScreen() {
                         <ThemedText style={styles.sectionTitle}>Activity log</ThemedText>
                         <ThemedText style={styles.sectionHint}>Latest first</ThemedText>
                     </View>
-                    <ActivityLogCard children={children} />
                 </ScrollView>
             </SafeAreaView>
         </View>

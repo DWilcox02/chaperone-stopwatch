@@ -37,14 +37,6 @@ export function ActivityBoard({
 
     return (
         <>
-            <View style={styles.boardIntro}>
-                <View>
-                    <ThemedText style={styles.sectionTitle}>Live board</ThemedText>
-                    <ThemedText style={styles.sectionHint}>Tap a child to change their activity</ThemedText>
-                </View>
-                <ThemedText style={styles.boardTotal}>{formatDuration(totalDuration)} tracked</ThemedText>
-            </View>
-
             <View style={styles.board}>
                 {categories.map((category) => {
                     return (
