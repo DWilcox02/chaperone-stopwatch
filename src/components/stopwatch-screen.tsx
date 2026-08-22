@@ -46,10 +46,19 @@ export default function StopwatchScreen() {
     }
 
     function assignChildActivity(childId: string, category: Category) {
-        setGroups((currentGroups) => [
-            ...currentGroups.filter((group) => !group.childIds.includes(childId)),
-            { id: `group-${Date.now()}`, name: `Group ${currentGroups.length + 1}`, childIds: [childId] },
-        ]);
+        setGroups((currentGroups) => {
+            const groupsWithoutChild = currentGroups
+                .map((group) => ({
+                    ...group,
+                    childIds: group.childIds.filter((id) => id !== childId),
+                }))
+                .filter((group) => group.childIds.length > 0);
+
+            return [
+                ...groupsWithoutChild,
+                { id: `group-${Date.now()}`, name: `Group ${groupsWithoutChild.length + 1}`, childIds: [childId] },
+            ];
+        });
         updateChildrenActivity([childId], category);
     }
 
@@ -63,16 +72,40 @@ export default function StopwatchScreen() {
         if (!targetGroup) return;
         const targetChild = children.find((child) => targetGroup.childIds.includes(child.id));
         setGroups((currentGroups) => currentGroups
-            .filter((group) => !group.childIds.includes(childId) || group.id === groupId)
+            .map((group) => ({
+                ...group,
+                childIds: group.childIds.filter((id) => id !== childId),
+            }))
+            .filter((group) => group.childIds.length > 0)
             .map((group) => group.id === groupId ? { ...group, childIds: [...group.childIds, childId] } : group));
         if (targetChild) updateChildrenActivity([childId], targetChild.segments[targetChild.segments.length - 1].category);
     }
 
-    function createGroup(childId: string) {
-        setGroups((currentGroups) => [
-            ...currentGroups.filter((group) => !group.childIds.includes(childId)),
-            { id: `group-${Date.now()}`, name: `Group ${currentGroups.length + 1}`, childIds: [childId] },
-        ]);
+    /**
+     * 
+     * @param childId Child to be put into new group
+     * @returns New groupId of the child's group
+     */
+    function createGroup(childId: string) : string {
+        let newGroupId = "";
+        setGroups((currentGroups) => {
+            const groupsWithoutChild = currentGroups
+                .map((group) => ({
+                    ...group,
+                    childIds: group.childIds.filter((id) => id !== childId),
+                }))
+                .filter((group) => group.childIds.length > 0);
+
+            newGroupId = `group-${Date.now()}`;
+            groupsWithoutChild.push({
+                id: newGroupId,
+                name: `Group ${currentGroups.length + 1}`,
+                childIds: [childId],
+            });
+
+            return groupsWithoutChild;
+        });
+        return newGroupId;
     }
 
     return (

@@ -17,7 +17,7 @@ type ActivityBoardProps = {
     onAssignChildActivity: (childId: string, category: Category) => void;
     onAssignGroupActivity: (groupId: string, category: Category) => void;
     onAddChildToGroup: (childId: string, groupId: string) => void;
-    onCreateGroup: (childId: string) => void;
+    onCreateGroup: (childId: string) => string;
 };
 
 export function ActivityBoard({
@@ -33,16 +33,17 @@ export function ActivityBoard({
     const [selectedChild, setSelectedChild] = useState<Child | null>(null);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
 
+    function selectGroupActivity(category: Category, groupId?: string) {
+        const groupIdToUse = selectedGroup?.id ?? groupId;
+        if (!groupIdToUse) return;
+        onAssignGroupActivity(groupIdToUse, category);
+        setSelectedGroup(null);
+    }
+
     function selectChildActivity(category: Category) {
         if (!selectedChild) return;
         onAssignChildActivity(selectedChild.id, category);
         setSelectedChild(null);
-    }
-
-    function selectGroupActivity(category: Category) {
-        if (!selectedGroup) return;
-        onAssignGroupActivity(selectedGroup.id, category);
-        setSelectedGroup(null);
     }
 
     return (
