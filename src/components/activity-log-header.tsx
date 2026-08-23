@@ -1,12 +1,68 @@
 import { View } from "react-native";
+import { Modal, Pressable } from "react-native";
+import { useState } from "react";
 
 import { ThemedText } from "@/components/themed-text";
 import styles from "@/constants/styles";
+import type { Child } from "@/constants/types";
 
-export function ActivityLogHeader() {
+type ActivityLogHeaderProps = {
+    children: Child[];
+    selectedChildId: string | null;
+    onSelectChild: (childId: string | null) => void;
+};
+
+export function ActivityLogHeader({ children, selectedChildId, onSelectChild }: ActivityLogHeaderProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const selectedChild = children.find((child) => child.id === selectedChildId);
+
     return (
-        <View style={styles.sectionHeader}>
-            <ThemedText style={styles.sectionTitle}>Recent activity</ThemedText>
-        </View>
+        <>
+            <View style={styles.sectionHeader}>
+                <ThemedText style={styles.sectionTitle}>
+                    {selectedChild ? `${selectedChild.name}'s history` : "Recent activity"}
+                </ThemedText>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Choose a child's activity history"
+                    onPress={() => setIsOpen(true)}
+                    style={({ pressed }) => [styles.logFilter, pressed && styles.pressed]}
+                >
+                    <ThemedText style={styles.logFilterText}>{selectedChild?.name ?? "All children"}</ThemedText>
+                    <ThemedText style={styles.logFilterChevron}>v</ThemedText>
+                </Pressable>
+            </View>
+            <Modal visible={isOpen} transparent animationType="fade" onRequestClose={() => setIsOpen(false)}>
+                <Pressable style={styles.modalOverlay} onPress={() => setIsOpen(false)}>
+                    <View style={styles.logFilterMenu}>
+                        <ThemedText style={styles.activityMenuTitle}>View history</ThemedText>
+                        <Pressable
+                            style={({ pressed }) => [styles.logFilterOption, pressed && styles.pressed]}
+                            onPress={() => {
+                                onSelectChild(null);
+                                setIsOpen(false);
+                            }}
+                        >
+                            <ThemedText style={styles.logFilterOptionText}>All children</ThemedText>
+                            {!selectedChildId && <ThemedText style={styles.logFilterCheck}>Selected</ThemedText>}
+                        </Pressable>
+                        {children.map((child) => (
+                            <Pressable
+                                key={child.id}
+                                style={({ pressed }) => [styles.logFilterOption, pressed && styles.pressed]}
+                                onPress={() => {
+                                    onSelectChild(child.id);
+                                    setIsOpen(false);
+                                }}
+                            >
+                                <View style={[styles.logFilterDot, { backgroundColor: child.color }]} />
+                                <ThemedText style={styles.logFilterOptionText}>{child.name}</ThemedText>
+                                {selectedChildId === child.id && <ThemedText style={styles.logFilterCheck}>Selected</ThemedText>}
+                            </Pressable>
+                        ))}
+                    </View>
+                </Pressable>
+            </Modal>
+        </>
     );
 }

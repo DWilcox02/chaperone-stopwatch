@@ -1,4 +1,6 @@
 import { Pressable, View } from "react-native";
+import { SymbolView } from "expo-symbols";
+import type { SFSymbol } from "sf-symbols-typescript";
 
 import { GroupActivityCard } from "@/components/group-activity-card";
 import { ThemedText } from "@/components/themed-text";
@@ -6,7 +8,7 @@ import type { Category, Child, Group } from "@/constants/types";
 import styles from "@/constants/styles";
 
 type ActivityColumnProps = {
-    category: { name: Category; shortName: string; color: string };
+    category: { name: Category; shortName: string; icon: SFSymbol; color: string };
     children: Child[];
     groups: Group[];
     currentTime: number;
@@ -40,7 +42,7 @@ export function ActivityColumn({
         (columnGroups.length > 0 &&
         <View style={styles.activityColumn}>
             <View style={styles.activityHeader}>
-                <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
+                <SymbolView name={category.icon} size={18} tintColor={category.color} />
                 <ThemedText style={styles.activityTitle}>{category.shortName}</ThemedText>
                 {/* <Pressable
                     accessibilityLabel={`Merge all children in ${category.name}`}

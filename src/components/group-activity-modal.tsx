@@ -1,4 +1,5 @@
 import { Modal, Pressable, View } from "react-native";
+import { SymbolView } from "expo-symbols";
 
 import { ThemedText } from "@/components/themed-text";
 import categories from "@/constants/categories";
@@ -32,7 +33,7 @@ export function GroupActivityModal({ group, children, onClose, onAssignActivity 
                                 onClose();
                             }}
                         >
-                            <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
+                            <SymbolView name={category.icon} size={18} tintColor={category.color} />
                             <ThemedText style={styles.activityOptionText}>{category.shortName}</ThemedText>
                         </Pressable>
                     ))}

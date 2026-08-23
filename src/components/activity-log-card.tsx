@@ -7,13 +7,15 @@ import type { Child } from "@/constants/types";
 
 type ActivityLogCardProps = {
     children: Child[];
+    selectedChildId: string | null;
 };
 
-export function ActivityLogCard({ children }: ActivityLogCardProps) {
+export function ActivityLogCard({ children, selectedChildId }: ActivityLogCardProps) {
     const entries = children
+        .filter((child) => selectedChildId === null || child.id === selectedChildId)
         .flatMap((child) => child.segments.map((segment) => ({ child, segment })))
         .sort((a, b) => b.segment.startedAt - a.segment.startedAt)
-        .slice(0, 8);
+        .slice(0, selectedChildId === null ? 8 : undefined);
 
     return (
         <View style={styles.logCard}>

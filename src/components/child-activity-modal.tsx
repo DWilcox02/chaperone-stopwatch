@@ -1,4 +1,5 @@
 import { Modal, Pressable, ScrollView, View } from "react-native";
+import { SymbolView } from "expo-symbols";
 
 import { ThemedText } from "@/components/themed-text";
 import categories from "@/constants/categories";
@@ -78,7 +79,7 @@ function ActivityOption({
             style={({ pressed }) => [styles.activityOption, pressed && styles.pressed]}
             onPress={onSelect}
         >
-            <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
+            <SymbolView name={category.icon} size={18} tintColor={category.color} />
             <View style={styles.activityOptionLabels}>
                 <ThemedText style={styles.activityOptionText}>
                     {category.shortName}

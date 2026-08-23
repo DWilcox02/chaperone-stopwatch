@@ -1,4 +1,5 @@
 import { View } from "react-native";
+import { SymbolView } from "expo-symbols";
 
 import { ThemedText } from "@/components/themed-text";
 import styles from "@/constants/styles";
@@ -22,7 +23,7 @@ export function TotalsCard({ children, currentTime }: TotalsCardProps) {
                 return duration > 0 ? (
                     <View key={category.name} style={styles.totalRow}>
                         <View style={styles.totalName}>
-                            <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
+                            <SymbolView name={category.icon} size={18} tintColor={category.color} />
                             <ThemedText style={styles.totalLabel}>{category.shortName}</ThemedText>
                         </View>
                         <ThemedText style={styles.totalValue}>{formatDuration(duration)}</ThemedText>

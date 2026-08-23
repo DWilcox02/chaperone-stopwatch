@@ -1,7 +1,8 @@
-import { ScrollView, StyleSheet, View } from "react-native";
+import { ScrollView, View } from "react-native";
 
 import { ChildActivityColumn } from "@/components/child-activity-column";
 import type { Category, Child } from "@/constants/types";
+import styles from "@/constants/styles";
 
 type ChildActivityPickerProps = {
     children: Child[];
@@ -9,16 +10,11 @@ type ChildActivityPickerProps = {
     onAssignActivity: (childId: string, category: Category) => void;
 };
 
-const styles = StyleSheet.create({
-    table: { flexDirection: "row", marginBottom: 20 },
-    columns: { flexDirection: "row", gap: 8 },
-});
-
 export function ChildActivityPicker({ children, currentTime, onAssignActivity }: ChildActivityPickerProps) {
     return (
         <ScrollView horizontal showsHorizontalScrollIndicator bounces={false}>
-            <View style={styles.table}>
-                <View style={styles.columns}>
+            <View style={styles.activityTable}>
+                <View style={styles.activityColumns}>
                     {children.map((child) => (
                         <ChildActivityColumn
                             key={child.id}
