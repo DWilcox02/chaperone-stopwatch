@@ -19,8 +19,6 @@ type ActivityBoardProps = {
     onAssignChildActivity: (childId: string, category: Category) => void;
     onAssignGroupActivity: (groupId: string, category: Category) => void;
     onMergeActivity: (category: Category) => void;
-    onAddChildToGroup: (childId: string, groupId: string) => void;
-    onCreateGroup: (childId: string) => string;
 };
 
 export function ActivityBoard({
@@ -31,8 +29,6 @@ export function ActivityBoard({
     onAssignChildActivity,
     onAssignGroupActivity,
     onMergeActivity,
-    onAddChildToGroup,
-    onCreateGroup,
 }: ActivityBoardProps) {
     const [selectedChild, setSelectedChild] = useState<Child | null>(null);
     const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
@@ -62,12 +58,6 @@ export function ActivityBoard({
                 onClose={() => setSelectedChild(null)}
                 onAssignActivity={(category) => {
                     if (selectedChild) onAssignChildActivity(selectedChild.id, category);
-                }}
-                onAddToGroup={(groupId) => {
-                    if (selectedChild) onAddChildToGroup(selectedChild.id, groupId);
-                }}
-                onCreateGroup={() => {
-                    if (selectedChild) onCreateGroup(selectedChild.id);
                 }}
             />
             <GroupActivityModal

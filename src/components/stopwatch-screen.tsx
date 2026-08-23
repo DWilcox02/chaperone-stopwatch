@@ -12,8 +12,6 @@ export default function StopwatchScreen() {
         assignChildActivity,
         assignGroupActivity,
         mergeActivity,
-        addChildToGroup,
-        createGroup,
     } = useStopwatchSession();
 
     return (
@@ -26,8 +24,6 @@ export default function StopwatchScreen() {
                 onAssignChildActivity={assignChildActivity}
                 onAssignGroupActivity={assignGroupActivity}
                 onMergeActivity={mergeActivity}
-                onAddChildToGroup={addChildToGroup}
-                onCreateGroup={createGroup}
             />
         </ScreenShell>
     );

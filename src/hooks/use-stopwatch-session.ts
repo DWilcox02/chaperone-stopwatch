@@ -33,15 +33,62 @@ type SessionAction =
     | { type: "clear-error" };
 
 function initialState(): SessionState {
+    const groups = initialChildren.reduce<Group[]>((result, child) => {
+        const activeCategory = getActiveCategory(child);
+        const existingGroup = activeCategory
+            ? result.find((group) => getGroupCategory(group, initialChildren) === activeCategory)
+            : undefined;
+        if (existingGroup) {
+            existingGroup.childIds.push(child.id);
+        } else {
+            result.push({
+                id: `group-${result.length + 1}`,
+                name: `Group ${result.length + 1}`,
+                childIds: [child.id],
+            });
+        }
+        return result;
+    }, []);
     return {
         children: initialChildren,
-        groups: initialChildren.map((child, index) => ({
-            id: `group-${index + 1}`,
-            name: `Group ${index + 1}`,
-            childIds: [child.id],
-        })),
+        groups,
         sessionError: null,
     };
+}
+
+function getActiveCategory(child: Child): Category | undefined {
+    return child.segments[child.segments.length - 1]?.category;
+}
+
+function getGroupCategory(group: Group, children: Child[]): Category | undefined {
+    const groupCategories = group.childIds
+        .map((childId) => children.find((child) => child.id === childId))
+        .map((child) => child && getActiveCategory(child));
+    const category = groupCategories[0];
+    return category && groupCategories.every((groupCategory) => groupCategory === category) ? category : undefined;
+}
+
+function consolidateActivity(
+    children: Child[],
+    groups: Group[],
+    category: Category,
+    childIds: string[],
+    preferredGroupId?: string,
+): Group[] {
+    const activityChildIds = children.filter((child) => getActiveCategory(child) === category).map((child) => child.id);
+    const childIdSet = new Set([...childIds, ...activityChildIds]);
+    const consolidatedChildIds = [...childIdSet];
+    const targetGroup =
+        groups.find((group) => group.id === preferredGroupId) ??
+        groups.find((group) => getGroupCategory(group, children) === category);
+    const groupsWithoutChildren = groups
+        .map((group) => ({ ...group, childIds: group.childIds.filter((childId) => !childIdSet.has(childId)) }))
+        .filter((group) => group.childIds.length > 0 || group.id === targetGroup?.id);
+    const targetId = targetGroup?.id;
+    if (!targetId) return groupsWithoutChildren;
+    return groupsWithoutChildren.map((group) =>
+        group.id === targetId ? { ...group, childIds: [...group.childIds, ...consolidatedChildIds] } : group,
+    );
 }
 
 function updateActivity(children: Child[], childIds: string[], category: Category, timestamp: number): Child[] {
@@ -64,16 +111,20 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
                 return { ...state, sessionError: "Unable to assign that activity." };
             if (!state.children.some((child) => child.id === action.childId))
                 return { ...state, sessionError: "That child is no longer available." };
+            const children = updateActivity(state.children, [action.childId], action.category, action.timestamp);
             const groups = state.groups
                 .map((group) => ({ ...group, childIds: group.childIds.filter((id) => id !== action.childId) }))
                 .filter((group) => group.childIds.length > 0);
+            const existingGroup = groups.find((group) => getGroupCategory(group, children) === action.category);
             return {
                 ...state,
-                children: updateActivity(state.children, [action.childId], action.category, action.timestamp),
-                groups: [
-                    ...groups,
-                    { id: action.groupId, name: `Group ${groups.length + 1}`, childIds: [action.childId] },
-                ],
+                children,
+                groups: existingGroup
+                    ? consolidateActivity(children, groups, action.category, [action.childId], existingGroup.id)
+                    : [
+                          ...groups,
+                          { id: action.groupId, name: `Group ${groups.length + 1}`, childIds: [action.childId] },
+                      ],
                 sessionError: null,
             };
         }
@@ -82,9 +133,11 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
             if (!group) return { ...state, sessionError: "That group is no longer available." };
             if (!validCategories.has(action.category))
                 return { ...state, sessionError: "Unable to assign that activity." };
+            const children = updateActivity(state.children, group.childIds, action.category, action.timestamp);
             return {
                 ...state,
-                children: updateActivity(state.children, group.childIds, action.category, action.timestamp),
+                children,
+                groups: consolidateActivity(children, state.groups, action.category, group.childIds, group.id),
                 sessionError: null,
             };
         }
@@ -94,9 +147,11 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
             const knownIds = new Set(state.children.map((child) => child.id));
             const childIds = action.childIds.filter((childId) => knownIds.has(childId));
             if (!childIds.length) return { ...state, sessionError: "That child is no longer available." };
+            const children = updateActivity(state.children, childIds, action.category, action.timestamp);
             return {
                 ...state,
-                children: updateActivity(state.children, childIds, action.category, action.timestamp),
+                children,
+                groups: consolidateActivity(children, state.groups, action.category, childIds),
                 sessionError: null,
             };
         }
@@ -109,18 +164,13 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
                 group.childIds.some((childId) => activityChildIds.includes(childId)),
             );
             if (!targetGroup) return { ...state, sessionError: "Those children are not assigned to a group." };
-            const activityIds = new Set(activityChildIds);
-            const groups = state.groups
-                .map((group) => ({
-                    ...group,
-                    childIds: group.childIds.filter((childId) => !activityIds.has(childId)),
-                }))
-                .map((group) =>
-                    group.id === targetGroup.id
-                        ? { ...group, childIds: [...group.childIds, ...activityChildIds] }
-                        : group,
-                )
-                .filter((group) => group.childIds.length > 0);
+            const groups = consolidateActivity(
+                state.children,
+                state.groups,
+                action.category,
+                activityChildIds,
+                targetGroup.id,
+            );
             return { ...state, groups, sessionError: null };
         }
         if (action.type === "move-child") {
@@ -135,8 +185,7 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
                 .map((group) =>
                     group.id === targetGroup.id ? { ...group, childIds: [...group.childIds, child.id] } : group,
                 );
-            const targetChild = state.children.find((candidate) => targetGroup.childIds.includes(candidate.id));
-            const targetCategory = targetChild?.segments[targetChild.segments.length - 1]?.category;
+            const targetCategory = getGroupCategory(targetGroup, state.children);
             return {
                 ...state,
                 groups,
@@ -147,8 +196,9 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
             };
         }
         if (action.type === "create-group") {
-            if (!state.children.some((child) => child.id === action.childId))
-                return { ...state, sessionError: "That child is no longer available." };
+            const child = state.children.find((candidate) => candidate.id === action.childId);
+            if (!child) return { ...state, sessionError: "That child is no longer available." };
+            if (getActiveCategory(child)) return { ...state, sessionError: "Each activity can only have one group." };
             const groups = state.groups
                 .map((group) => ({ ...group, childIds: group.childIds.filter((id) => id !== action.childId) }))
                 .filter((group) => group.childIds.length > 0);

@@ -102,7 +102,9 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: "#EEEAE3",
     },
-    activityOptionText: { flex: 1, color: "#5E5C56", fontSize: 14, fontWeight: "700" },
+    activityOptionLabels: { flex: 1, justifyContent: "center" },
+    activityOptionText: { color: "#5E5C56", fontSize: 14, fontWeight: "700" },
+    groupOptionText: { color: "#5E5C56", fontSize: 12, fontWeight: "500" },
     activityOptionCheck: { fontSize: 10, fontWeight: "800", textTransform: "uppercase" },
     menuLabel: { color: "#9A948A", fontSize: 10, fontWeight: "800", letterSpacing: 1.1, marginTop: 12 },
     groupCard: {

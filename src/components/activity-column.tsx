@@ -1,5 +1,4 @@
 import { Pressable, View } from "react-native";
-import { SymbolView } from "expo-symbols";
 
 import { GroupActivityCard } from "@/components/group-activity-card";
 import { ThemedText } from "@/components/themed-text";
@@ -43,7 +42,7 @@ export function ActivityColumn({
             <View style={styles.activityHeader}>
                 <View style={[styles.categoryDot, { backgroundColor: category.color }]} />
                 <ThemedText style={styles.activityTitle}>{category.shortName}</ThemedText>
-                <Pressable
+                {/* <Pressable
                     accessibilityLabel={`Merge all children in ${category.name}`}
                     accessibilityRole="button"
                     hitSlop={8}
@@ -51,7 +50,7 @@ export function ActivityColumn({
                     style={({ pressed }) => [styles.mergeActivityButton, pressed && styles.pressed]}
                 >
                     <SymbolView name="person.3.fill" size={18} tintColor={category.color} />
-                </Pressable>
+                </Pressable> */}
             </View>
             <View style={[styles.activityGroup, !columnGroups.length && styles.activityGroupEmpty]}>
                 {columnGroups.map((group) => {
