@@ -1,4 +1,4 @@
-import { ActivityBoard } from "@/components/activity-board";
+import { ActivityBoard } from "@/components/group-activity/activity-board";
 import { ScreenShell } from "@/components/screen-shell";
 import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
 

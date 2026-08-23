@@ -1,6 +1,6 @@
 import { View } from "react-native";
 
-import { ChildActivityPickerButton } from "@/components/child-activity-picker-button";
+import { ChildActivityPickerButton } from "@/components/child-activity/child-activity-picker-button";
 import { ThemedText } from "@/components/themed-text";
 import categories from "@/constants/categories";
 import type { Category, Child } from "@/constants/types";

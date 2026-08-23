@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import { ActivityLogCard } from "@/components/activity-log-card";
-import { ActivityLogHeader } from "@/components/activity-log-header";
+import { ActivityLogCard } from "@/components/activity-log/activity-log-card";
+import { ActivityLogHeader } from "@/components/activity-log/activity-log-header";
 import { ScreenShell } from "@/components/screen-shell";
 import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
 

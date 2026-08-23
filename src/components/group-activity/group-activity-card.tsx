@@ -1,7 +1,7 @@
 import { Pressable, Text, View } from "react-native";
 import { SymbolView } from "expo-symbols";
 
-import { ChildActivityCard } from "@/components/child-activity-card";
+import { ChildActivityCard } from "@/components/child-activity/child-activity-card";
 import type { Category, Child, Group } from "@/constants/types";
 import styles from "@/constants/styles";
 

@@ -2,7 +2,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
+
 import AppTabs from '@/components/app-tabs';
 import { StopwatchSessionProvider } from '@/hooks/use-stopwatch-session';
 
@@ -13,7 +13,6 @@ export default function TabLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <StopwatchSessionProvider>
-          <AnimatedSplashOverlay />
           <AppTabs />
         </StopwatchSessionProvider>
     </ThemeProvider>

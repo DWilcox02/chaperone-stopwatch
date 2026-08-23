@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { View } from "react-native";
 
-import { ActivityColumn } from "@/components/activity-column";
-import { ChildActivityModal } from "@/components/child-activity-modal";
-import { GroupActivityModal } from "@/components/group-activity-modal";
+import { ActivityColumn } from "@/components/group-activity/activity-column";
+import { ChildActivityModal } from "@/components/child-activity/child-activity-modal";
+import { GroupActivityModal } from "@/components/group-activity/group-activity-modal";
 import { ThemedText } from "@/components/themed-text";
 import categories from "@/constants/categories";
 import styles from "@/constants/styles";

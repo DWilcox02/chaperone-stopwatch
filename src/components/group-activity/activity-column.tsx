@@ -2,7 +2,7 @@ import { Pressable, View } from "react-native";
 import { SymbolView } from "expo-symbols";
 import type { SFSymbol } from "sf-symbols-typescript";
 
-import { GroupActivityCard } from "@/components/group-activity-card";
+import { GroupActivityCard } from "@/components/group-activity/group-activity-card";
 import { ThemedText } from "@/components/themed-text";
 import type { Category, Child, Group } from "@/constants/types";
 import styles from "@/constants/styles";

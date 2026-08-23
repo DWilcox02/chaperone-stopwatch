@@ -1,6 +1,6 @@
 import { View } from "react-native";
 
-import { ActivityLogRow } from "@/components/activity-log-row";
+import { ActivityLogRow } from "@/components/activity-log/activity-log-row";
 import styles from "@/constants/styles";
 
 import type { Child } from "@/constants/types";

@@ -1,4 +1,4 @@
-import { ChildActivityPicker } from "@/components/child-activity-picker";
+import { ChildActivityPicker } from "@/components/child-activity/child-activity-picker";
 import { ScreenShell } from "@/components/screen-shell";
 import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
 

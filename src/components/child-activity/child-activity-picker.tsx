@@ -1,6 +1,6 @@
 import { ScrollView, View } from "react-native";
 
-import { ChildActivityColumn } from "@/components/child-activity-column";
+import { ChildActivityColumn } from "@/components/child-activity/child-activity-column";
 import type { Category, Child } from "@/constants/types";
 import styles from "@/constants/styles";
 
