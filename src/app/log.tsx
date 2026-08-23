@@ -2,11 +2,12 @@ import { useState } from "react";
 
 import { ActivityLogCard } from "@/components/activity-log/activity-log-card";
 import { ActivityLogHeader } from "@/components/activity-log/activity-log-header";
+import { ActivityLogChart } from "@/components/activity-log/activity-log-chart";
 import { ScreenShell } from "@/components/screen-shell";
 import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
 
 export default function LogScreen() {
-    const { children } = useStopwatchSession();
+    const { children, currentTime } = useStopwatchSession();
     const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
 
     return (
@@ -17,6 +18,7 @@ export default function LogScreen() {
                 onSelectChild={setSelectedChildId}
             />
             <ActivityLogCard children={children} selectedChildId={selectedChildId} />
+            <ActivityLogChart children={children} selectedChildId={selectedChildId} currentTime={currentTime} />
         </ScreenShell>
     );
 }

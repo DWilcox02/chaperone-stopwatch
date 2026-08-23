@@ -17,6 +17,7 @@ type Child = {
     color: string;
     segments: Segment[];
     allowedHours: number;
+    allowedHoursByCategory?: Partial<Record<Category, number>>;
 };
 type Group = {
     id: string;
