@@ -23,7 +23,7 @@ export function ChildActivityCard({
 }: ChildActivityCardProps) {
     if (!activeSegment) return null;
 
-    const totalTime = child.segments.reduce((total, segment) => (
+    const totalTime = child.time?.totalMilliseconds ?? child.segments.reduce((total, segment) => (
         total + (segment.endedAt ?? currentTime) - segment.startedAt
     ), 0);
 

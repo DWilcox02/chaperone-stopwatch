@@ -3,10 +3,22 @@ import { createContext, createElement, useCallback, useContext, useEffect, useMe
 import categories from "@/constants/categories";
 import { initialChildren } from "@/constants/children";
 import type { Category, Child, Group } from "@/constants/types";
+import {
+    createChild,
+    createLogEntry,
+    createSession,
+    getSession,
+    listChildren,
+    listLogEntries,
+    type CategoryCode,
+} from "@/services/database";
+import { getChildTime } from "@/services/child-time";
+import type { Segment } from "@/constants/types";
 
 type StopwatchSession = {
     children: Child[];
     groups: Group[];
+    sessionDate: string;
     currentTime: number;
     totalDuration: number;
     assignChildActivity: (childId: string, category: Category) => void;
@@ -23,6 +35,8 @@ const validCategories = new Set<Category>(categories.map((category) => category.
 
 type SessionState = { children: Child[]; groups: Group[]; sessionError: string | null };
 type SessionAction =
+    | { type: "hydrate"; children: Child[]; groups: Group[] }
+    | { type: "update-times"; times: Record<string, Awaited<ReturnType<typeof getChildTime>>> }
     | { type: "assign-child"; childId: string; category: Category; timestamp: number; groupId: string }
     | { type: "assign-group"; groupId: string; category: Category; timestamp: number }
     | { type: "assign-activity"; childIds: string[]; category: Category; timestamp: number }
@@ -33,10 +47,14 @@ type SessionAction =
     | { type: "clear-error" };
 
 function initialState(): SessionState {
-    const groups = initialChildren.reduce<Group[]>((result, child) => {
+    return createState(initialChildren);
+}
+
+function createState(children: Child[]): SessionState {
+    const groups = children.reduce<Group[]>((result, child) => {
         const activeCategory = getActiveCategory(child);
         const existingGroup = activeCategory
-            ? result.find((group) => getGroupCategory(group, initialChildren) === activeCategory)
+            ? result.find((group) => getGroupCategory(group, children) === activeCategory)
             : undefined;
         if (existingGroup) {
             existingGroup.childIds.push(child.id);
@@ -50,10 +68,90 @@ function initialState(): SessionState {
         return result;
     }, []);
     return {
-        children: initialChildren,
+        children,
         groups,
         sessionError: null,
     };
+}
+
+const ACTIVE_SESSION_ID = "active-session";
+const categoryCodesByName: Record<Category, CategoryCode> = {
+    Performance: "P",
+    Rehearsal: "Rh",
+    Standby: "S",
+    Rest: "R",
+    Meal: "M",
+    Travel: "T",
+    Costume: "Cs",
+    "Hair & Makeup": "HMU",
+    Tutoring: "Tt",
+    Wrap: "W",
+};
+const categoryNamesByCode: Record<CategoryCode, Category> = {
+    P: "Performance",
+    Rh: "Rehearsal",
+    S: "Standby",
+    R: "Rest",
+    C: "Standby",
+    M: "Meal",
+    T: "Travel",
+    Cs: "Costume",
+    HMU: "Hair & Makeup",
+    Tt: "Tutoring",
+    W: "Wrap",
+    O: "Rest",
+    A: "Standby",
+    D: "Wrap",
+};
+
+function getPersistedSegments(childId: string, entries: Awaited<ReturnType<typeof listLogEntries>>): Segment[] {
+    const childEntries = entries
+        .filter((entry) => entry.childId === childId)
+        .sort((first, second) => first.timestamp - second.timestamp);
+    return childEntries.map((entry, index) => ({
+        category: categoryNamesByCode[entry.categoryCode],
+        startedAt: entry.timestamp,
+        endedAt: childEntries[index + 1]?.timestamp,
+    }));
+}
+
+async function loadPersistedChildren(): Promise<Child[]> {
+    if (!(await getSession(ACTIVE_SESSION_ID, true))) {
+        await createSession({ id: ACTIVE_SESSION_ID, date: new Date().toISOString().slice(0, 10) });
+    }
+
+    let databaseChildren = await listChildren(ACTIVE_SESSION_ID);
+    if (!databaseChildren.length) {
+        for (const child of initialChildren) {
+            await createChild({ id: child.id, sessionId: ACTIVE_SESSION_ID, name: child.name, ageGroup: "9+" });
+            for (const segment of child.segments) {
+                await createLogEntry({
+                    id: `${child.id}-${segment.startedAt}`,
+                    childId: child.id,
+                    timestamp: segment.startedAt,
+                    categoryCode: categoryCodesByName[segment.category],
+                });
+            }
+        }
+        databaseChildren = await listChildren(ACTIVE_SESSION_ID);
+    }
+
+    const entries = await listLogEntries();
+    return Promise.all(
+        databaseChildren.map(async (databaseChild) => {
+            const template = initialChildren.find((child) => child.id === databaseChild.id);
+            const time = await getChildTime(databaseChild.id, databaseChild.ageGroup);
+            return {
+                id: databaseChild.id,
+                name: databaseChild.name,
+                role: template?.role ?? "Child",
+                color: template?.color ?? "#4B9B91",
+                segments: getPersistedSegments(databaseChild.id, entries),
+                allowedHours: time.totalHoursLimit,
+                time,
+            };
+        }),
+    );
 }
 
 function getActiveCategory(child: Child): Category | undefined {
@@ -106,6 +204,13 @@ function updateActivity(children: Child[], childIds: string[], category: Categor
 
 function sessionReducer(state: SessionState, action: SessionAction): SessionState {
     try {
+        if (action.type === "hydrate") return { children: action.children, groups: action.groups, sessionError: null };
+        if (action.type === "update-times") {
+            return {
+                ...state,
+                children: state.children.map((child) => ({ ...child, time: action.times[child.id] ?? child.time })),
+            };
+        }
         if (action.type === "assign-child") {
             if (!validCategories.has(action.category))
                 return { ...state, sessionError: "Unable to assign that activity." };
@@ -221,9 +326,42 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
 
 function useStopwatchSessionState(): StopwatchSession {
     const [state, dispatch] = useReducer(sessionReducer, undefined, initialState);
+    const [sessionDate, setSessionDate] = useReducer(
+        (_: string, date: string) => date,
+        new Date().toISOString().slice(0, 10),
+    );
     const [currentTime, setCurrentTime] = useReducer((_: number, timestamp: number) => timestamp, Date.now());
     const lastTimestamp = useRef(currentTime);
     const sequence = useRef(0);
+
+    const refreshFromDatabase = useCallback(async () => {
+        const session = await getSession(ACTIVE_SESSION_ID, true);
+        const children = await loadPersistedChildren();
+        if (session) setSessionDate(session.date);
+        const nextState = createState(children);
+        dispatch({ type: "hydrate", children: nextState.children, groups: nextState.groups });
+    }, []);
+
+    useEffect(() => {
+        void refreshFromDatabase().catch((error) => {
+            console.error("Unable to load stopwatch data", error);
+            dispatch({ type: "error", message: "The stopwatch data could not be loaded." });
+        });
+    }, [refreshFromDatabase]);
+
+    useEffect(() => {
+        if (!state.children.length) return;
+        void Promise.all(
+            state.children.map(
+                async (child) =>
+                    [child.id, await getChildTime(child.id, child.time?.ageGroup ?? "9+", currentTime)] as const,
+            ),
+        )
+            .then((results) => {
+                dispatch({ type: "update-times", times: Object.fromEntries(results) });
+            })
+            .catch((error) => console.error("Unable to refresh child time", error));
+    }, [currentTime, state.children.length]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -246,23 +384,49 @@ function useStopwatchSessionState(): StopwatchSession {
             dispatch({ type: "error", message: "The stopwatch could not update. Please try again." });
         }
     }, []);
+    const persistActivity = useCallback(
+        async (childIds: string[], category: Category) => {
+            const timestamp = nextTimestamp();
+            await Promise.all(
+                childIds.map((childId) =>
+                    createLogEntry({
+                        id: `${childId}-${timestamp}`,
+                        childId,
+                        timestamp,
+                        categoryCode: categoryCodesByName[category],
+                    }),
+                ),
+            );
+            await refreshFromDatabase();
+        },
+        [nextTimestamp, refreshFromDatabase],
+    );
     const assignChildActivity = useCallback(
         (childId: string, category: Category) => {
-            safeDispatch({
-                type: "assign-child",
-                childId,
-                category,
-                timestamp: nextTimestamp(),
-                groupId: `group-${Date.now()}-${sequence.current++}`,
+            if (state.children.find((child) => child.id === childId)?.segments.at(-1)?.category === category) return;
+            void persistActivity([childId], category).catch((error) => {
+                console.error("Unable to save child activity", error);
+                dispatch({ type: "error", message: "The activity could not be saved." });
             });
         },
-        [nextTimestamp, safeDispatch],
+        [persistActivity, state.children],
     );
     const assignGroupActivity = useCallback(
         (groupId: string, category: Category) => {
-            safeDispatch({ type: "assign-group", groupId, category, timestamp: nextTimestamp() });
+            const group = state.groups.find((candidate) => candidate.id === groupId);
+            if (!group) return;
+            void persistActivity(
+                group.childIds.filter(
+                    (childId) =>
+                        state.children.find((child) => child.id === childId)?.segments.at(-1)?.category !== category,
+                ),
+                category,
+            ).catch((error) => {
+                console.error("Unable to save group activity", error);
+                dispatch({ type: "error", message: "The activity could not be saved." });
+            });
         },
-        [nextTimestamp, safeDispatch],
+        [persistActivity, state.children, state.groups],
     );
     const mergeActivity = useCallback(
         (category: Category) => {
@@ -301,6 +465,7 @@ function useStopwatchSessionState(): StopwatchSession {
     );
     return {
         ...state,
+        sessionDate,
         currentTime,
         totalDuration,
         assignChildActivity,

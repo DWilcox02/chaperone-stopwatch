@@ -1,3 +1,5 @@
+import type { ChildTimeCalculation } from "@/services/child-time";
+
 type Category =
     | "Performance"
     | "Rehearsal"
@@ -18,6 +20,7 @@ type Child = {
     segments: Segment[];
     allowedHours: number;
     allowedHoursByCategory?: Partial<Record<Category, number>>;
+    time?: ChildTimeCalculation;
 };
 type Group = {
     id: string;
