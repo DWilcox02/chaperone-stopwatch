@@ -45,7 +45,6 @@ example
 
 .claude
 .vscode
-.husky
 
 .github/copilot-instructions.md
 coverage
