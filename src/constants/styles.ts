@@ -244,7 +244,6 @@ const styles = StyleSheet.create({
         fontSize: 9,
         fontWeight: "800",
         fontVariant: ["tabular-nums"],
-        height: 14,
         marginBottom: 4,
     },
     logChartTrack: {
