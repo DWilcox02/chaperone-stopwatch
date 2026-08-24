@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
         borderBottomColor: "#EEEAE3",
     },
     logLine: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#D5D0C7" },
-    logTime: { width: 48, color: "#9A948A", fontSize: 12, fontVariant: ["tabular-nums"] },
+    logTime: { width: 65, color: "#9A948A", fontSize: 12, fontVariant: ["tabular-nums"] },
     logActivity: { color: "#6F6B63", fontSize: 13 },
     logActivityActive: { color: "#252A27", fontWeight: "800" },
     logChartCard: {

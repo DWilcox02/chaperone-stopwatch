@@ -25,6 +25,7 @@ export function ActivityLogCard({ children, selectedChildId }: ActivityLogCardPr
                     child={entry.child}
                     segment={entry.segment}
                     isLatest={index === 0}
+                    allChildren={selectedChildId == null}
                 />
             ))}
         </View>
