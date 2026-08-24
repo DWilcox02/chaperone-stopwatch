@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("expo-sqlite", () => ({ openDatabaseAsync: mocks.openDatabaseAsync }));
 
-import { createLogEntry, getDatabase, listChildren, listLogEntries } from "./database";
+import { createLogEntry, getDatabase, listChildren, listLogEntries } from "../../src/services/database";
 
 describe("database adapter", () => {
     beforeEach(() => {

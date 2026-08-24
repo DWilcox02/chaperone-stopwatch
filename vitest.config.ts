@@ -10,6 +10,6 @@ export default defineConfig({
     test: {
         environment: "node",
         globals: true,
-        exclude: ["**/node_modules/**", "src/**/*.component.test.tsx"],
+        exclude: ["**/node_modules/**", "**/*.component.test.tsx"],
     },
 });

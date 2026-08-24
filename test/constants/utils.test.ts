@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { formatClock, formatDuration, formatHoursMinutes, formatHoursRounded, formatTimer } from "./utils";
+import {
+    formatClock,
+    formatDuration,
+    formatHoursMinutes,
+    formatHoursRounded,
+    formatTimer,
+} from "../../src/constants/utils";
 
 describe("time formatting utilities", () => {
     it("formats durations without allowing negative values", () => {

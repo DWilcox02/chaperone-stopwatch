@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("expo-sqlite", () => ({ openDatabaseAsync: vi.fn() }));
 
-import { calculateChildTime, getChildTime } from "./child-time";
-import type { LogEntry } from "./database";
+import { calculateChildTime, getChildTime } from "../../src/services/child-time";
+import type { LogEntry } from "../../src/services/database";
 
 const entry = (
     id: string,

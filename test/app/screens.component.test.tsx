@@ -1,8 +1,8 @@
 import { act, fireEvent, render } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 
-import ChildScreen from "./child";
-import LogScreen from "./log";
+import ChildScreen from "../../src/app/child";
+import LogScreen from "../../src/app/log";
 import { DatabaseProvider } from "@/services/service-context";
 import type { Child, LogEntry, Session, SessionExportRow } from "@/services/database";
 import type { DatabaseAdapter } from "@/services/database";

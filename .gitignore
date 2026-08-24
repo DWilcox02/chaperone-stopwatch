@@ -45,4 +45,6 @@ example
 
 .claude
 .vscode
-.github
+.husky
+
+.github/copilot-instructions.md

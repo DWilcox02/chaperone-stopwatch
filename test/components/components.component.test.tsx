@@ -3,14 +3,14 @@ import { describe, expect, it, jest } from "@jest/globals";
 
 import categories from "@/constants/categories";
 import type { Category, Child, Group } from "@/constants/types";
-import { ActivityLogCard } from "./activity-log/activity-log-card";
-import { ActivityLogHeader } from "./activity-log/activity-log-header";
-import { ActivityColumn } from "./group-activity/activity-column";
-import { GroupActivityModal } from "./group-activity/group-activity-modal";
-import { ChildActivityCard } from "./child-activity/child-activity-card";
-import { ChildActivityPicker } from "./child-activity/child-activity-picker";
-import { ChildActivityModal } from "./child-activity/child-activity-modal";
-import { TotalsCard } from "./totals-card";
+import { ActivityLogCard } from "../../src/components/activity-log/activity-log-card";
+import { ActivityLogHeader } from "../../src/components/activity-log/activity-log-header";
+import { ActivityColumn } from "../../src/components/group-activity/activity-column";
+import { GroupActivityModal } from "../../src/components/group-activity/group-activity-modal";
+import { ChildActivityCard } from "../../src/components/child-activity/child-activity-card";
+import { ChildActivityPicker } from "../../src/components/child-activity/child-activity-picker";
+import { ChildActivityModal } from "../../src/components/child-activity/child-activity-modal";
+import { TotalsCard } from "../../src/components/totals-card";
 
 const child = (overrides: Partial<Child> = {}): Child => ({
     id: "child-1",

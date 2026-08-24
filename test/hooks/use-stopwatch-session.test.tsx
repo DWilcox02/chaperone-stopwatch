@@ -28,7 +28,7 @@ vi.mock("@/services/service-context", () => ({
     useDatabase: () => testState.database,
 }));
 
-import { useStopwatchSession, StopwatchSessionProvider } from "./use-stopwatch-session";
+import { useStopwatchSession, StopwatchSessionProvider } from "../../src/hooks/use-stopwatch-session";
 
 function Probe({ onUpdate }: { onUpdate: (value: ReturnType<typeof useStopwatchSession>) => void }) {
     onUpdate(useStopwatchSession());
