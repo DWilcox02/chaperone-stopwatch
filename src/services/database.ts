@@ -31,6 +31,16 @@ export type LogEntry = {
     voided: boolean;
 };
 
+export type DatabaseAdapter = {
+    getSession: typeof getSession;
+    createSession: typeof createSession;
+    listChildren: typeof listChildren;
+    createChild: typeof createChild;
+    listLogEntries: typeof listLogEntries;
+    createLogEntry: typeof createLogEntry;
+    getSessionExportRows: typeof getSessionExportRows;
+};
+
 type SessionRow = { id: string; date: string; voided: number };
 type ChildRow = { id: string; session_id: string; name: string; age_group: string; voided: number };
 type LogEntryRow = { id: string; child_id: string; timestamp: string; category_code: CategoryCode; voided: number };
@@ -332,3 +342,13 @@ export async function getCategoryTotals(childId?: string): Promise<Record<Catego
         Object.fromEntries(CATEGORY_CODES.map((code) => [code, 0])) as Record<CategoryCode, number>,
     );
 }
+
+export const defaultDatabaseAdapter: DatabaseAdapter = {
+    getSession,
+    createSession,
+    listChildren,
+    createChild,
+    listLogEntries,
+    createLogEntry,
+    getSessionExportRows,
+};

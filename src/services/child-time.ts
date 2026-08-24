@@ -1,4 +1,4 @@
-import { listLogEntries, type LogEntry } from "./database";
+import { defaultDatabaseAdapter, type DatabaseAdapter, type LogEntry } from "./database";
 
 export type ChildAgeGroup = "0-4" | "5-8" | "9+";
 
@@ -80,7 +80,12 @@ export function calculateChildTime(
     };
 }
 
-export async function getChildTime(childId: string, ageGroup: string, now = Date.now()): Promise<ChildTimeCalculation> {
-    const entries = await listLogEntries(childId);
+export async function getChildTime(
+    childId: string,
+    ageGroup: string,
+    now = Date.now(),
+    database: Pick<DatabaseAdapter, "listLogEntries"> = defaultDatabaseAdapter,
+): Promise<ChildTimeCalculation> {
+    const entries = await database.listLogEntries(childId);
     return calculateChildTime(childId, ageGroup, entries, now);
 }

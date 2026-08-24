@@ -7,6 +7,7 @@ import * as Database from '../services/database';
 
 import AppTabs from '@/components/app-tabs';
 import { StopwatchSessionProvider } from '@/hooks/use-stopwatch-session';
+import { DatabaseProvider, ExportServicesProvider } from '@/services/service-context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -29,9 +30,13 @@ export default function TabLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <StopwatchSessionProvider>
-          <AppTabs />
-        </StopwatchSessionProvider>
+        <DatabaseProvider>
+          <ExportServicesProvider>
+            <StopwatchSessionProvider>
+              <AppTabs />
+            </StopwatchSessionProvider>
+          </ExportServicesProvider>
+        </DatabaseProvider>
     </ThemeProvider>
   );
 }

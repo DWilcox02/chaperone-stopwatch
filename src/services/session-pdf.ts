@@ -1,7 +1,7 @@
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 
-import { listLogEntries, type LogEntry } from "./database";
+import { listLogEntries, type DatabaseAdapter, type LogEntry } from "./database";
 
 const GRID_START_HOUR = 7;
 const GRID_END_HOUR = 23;
@@ -90,20 +90,53 @@ export function createChildReportHtml(childName: string, reportDate: string, ent
 </html>`;
 }
 
+export type ChildPdfPrintAdapter = {
+    print: (html: string) => Promise<string>;
+};
+
+export type ChildPdfSharingAdapter = {
+    isAvailable: () => Promise<boolean>;
+    share: (uri: string, childName: string) => Promise<void>;
+};
+
+export type ChildPdfService = {
+    export: (childId: string, childName: string, reportDate: string) => Promise<string>;
+};
+
+const expoPrintAdapter: ChildPdfPrintAdapter = {
+    print: async (html) => (await Print.printToFileAsync({ html })).uri,
+};
+
+const expoPdfSharingAdapter: ChildPdfSharingAdapter = {
+    isAvailable: () => Sharing.isAvailableAsync(),
+    share: (uri, childName) =>
+        Sharing.shareAsync(uri, {
+            mimeType: "application/pdf",
+            dialogTitle: `Export ${childName} report`,
+            UTI: "com.adobe.pdf",
+        }).then(() => undefined),
+};
+
+export function createChildPdfService({
+    database,
+    print = expoPrintAdapter,
+    sharing = expoPdfSharingAdapter,
+}: {
+    database: Pick<DatabaseAdapter, "listLogEntries">;
+    print?: ChildPdfPrintAdapter;
+    sharing?: ChildPdfSharingAdapter;
+}): ChildPdfService {
+    return {
+        async export(childId, childName, reportDate) {
+            const entries = await database.listLogEntries(childId);
+            const uri = await print.print(createChildReportHtml(childName, reportDate, entries));
+            if (!(await sharing.isAvailable())) throw new Error("Sharing is not available on this device.");
+            await sharing.share(uri, childName);
+            return uri;
+        },
+    };
+}
+
 export async function exportChildPdfReport(childId: string, childName: string, reportDate: string): Promise<string> {
-    const entries = await listLogEntries(childId);
-    const result = await Print.printToFileAsync({
-        html: createChildReportHtml(childName, reportDate, entries),
-    });
-
-    if (!(await Sharing.isAvailableAsync())) {
-        throw new Error("Sharing is not available on this device.");
-    }
-
-    await Sharing.shareAsync(result.uri, {
-        mimeType: "application/pdf",
-        dialogTitle: `Export ${childName} report`,
-        UTI: "com.adobe.pdf",
-    });
-    return result.uri;
+    return createChildPdfService({ database: { listLogEntries } }).export(childId, childName, reportDate);
 }

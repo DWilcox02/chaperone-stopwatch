@@ -7,13 +7,13 @@ import { ActivityLogHeader } from "@/components/activity-log/activity-log-header
 import { ActivityLogChart } from "@/components/activity-log/activity-log-chart";
 import { ScreenShell } from "@/components/screen-shell";
 import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
-import { exportChildPdfReport } from "@/services/session-pdf";
-import { exportSessionCsv } from "@/services/session-export";
+import { useExportServices } from "@/services/service-context";
 import styles from "@/constants/styles";
 import { ThemedText } from "@/components/themed-text";
 
 export default function LogScreen() {
     const { children, currentTime, sessionDate } = useStopwatchSession();
+    const exportServices = useExportServices();
     const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
     const [isExporting, setIsExporting] = useState(false);
     const selectedChild = children.find((child) => child.id === selectedChildId);
@@ -21,7 +21,7 @@ export default function LogScreen() {
     async function handleCsvExport() {
         setIsExporting(true);
         try {
-            await exportSessionCsv(sessionDate);
+            await exportServices.csv.export(sessionDate);
         } finally {
             setIsExporting(false);
         }
@@ -31,7 +31,7 @@ export default function LogScreen() {
         if (!selectedChild) return;
         setIsExporting(true);
         try {
-            await exportChildPdfReport(selectedChild.id, selectedChild.name, sessionDate);
+            await exportServices.pdf.export(selectedChild.id, selectedChild.name, sessionDate);
         } finally {
             setIsExporting(false);
         }

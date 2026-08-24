@@ -3,16 +3,9 @@ import { createContext, createElement, useCallback, useContext, useEffect, useMe
 import categories from "@/constants/categories";
 import { initialChildren } from "@/constants/children";
 import type { Category, Child, Group } from "@/constants/types";
-import {
-    createChild,
-    createLogEntry,
-    createSession,
-    getSession,
-    listChildren,
-    listLogEntries,
-    type CategoryCode,
-} from "@/services/database";
+import { type CategoryCode, type DatabaseAdapter, type LogEntry } from "@/services/database";
 import { getChildTime } from "@/services/child-time";
+import { useDatabase } from "@/services/service-context";
 import type { Segment } from "@/constants/types";
 
 type StopwatchSession = {
@@ -104,7 +97,7 @@ const categoryNamesByCode: Record<CategoryCode, Category> = {
     D: "Wrap",
 };
 
-function getPersistedSegments(childId: string, entries: Awaited<ReturnType<typeof listLogEntries>>): Segment[] {
+function getPersistedSegments(childId: string, entries: LogEntry[]): Segment[] {
     const childEntries = entries
         .filter((entry) => entry.childId === childId)
         .sort((first, second) => first.timestamp - second.timestamp);
@@ -115,17 +108,22 @@ function getPersistedSegments(childId: string, entries: Awaited<ReturnType<typeo
     }));
 }
 
-async function loadPersistedChildren(): Promise<Child[]> {
-    if (!(await getSession(ACTIVE_SESSION_ID, true))) {
-        await createSession({ id: ACTIVE_SESSION_ID, date: new Date().toISOString().slice(0, 10) });
+async function loadPersistedChildren(database: DatabaseAdapter): Promise<Child[]> {
+    if (!(await database.getSession(ACTIVE_SESSION_ID, true))) {
+        await database.createSession({ id: ACTIVE_SESSION_ID, date: new Date().toISOString().slice(0, 10) });
     }
 
-    let databaseChildren = await listChildren(ACTIVE_SESSION_ID);
+    let databaseChildren = await database.listChildren(ACTIVE_SESSION_ID);
     if (!databaseChildren.length) {
         for (const child of initialChildren) {
-            await createChild({ id: child.id, sessionId: ACTIVE_SESSION_ID, name: child.name, ageGroup: "9+" });
+            await database.createChild({
+                id: child.id,
+                sessionId: ACTIVE_SESSION_ID,
+                name: child.name,
+                ageGroup: "9+",
+            });
             for (const segment of child.segments) {
-                await createLogEntry({
+                await database.createLogEntry({
                     id: `${child.id}-${segment.startedAt}`,
                     childId: child.id,
                     timestamp: segment.startedAt,
@@ -133,14 +131,14 @@ async function loadPersistedChildren(): Promise<Child[]> {
                 });
             }
         }
-        databaseChildren = await listChildren(ACTIVE_SESSION_ID);
+        databaseChildren = await database.listChildren(ACTIVE_SESSION_ID);
     }
 
-    const entries = await listLogEntries();
+    const entries = await database.listLogEntries();
     return Promise.all(
         databaseChildren.map(async (databaseChild) => {
             const template = initialChildren.find((child) => child.id === databaseChild.id);
-            const time = await getChildTime(databaseChild.id, databaseChild.ageGroup);
+            const time = await getChildTime(databaseChild.id, databaseChild.ageGroup, Date.now(), database);
             return {
                 id: databaseChild.id,
                 name: databaseChild.name,
@@ -325,6 +323,7 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
 }
 
 function useStopwatchSessionState(): StopwatchSession {
+    const database = useDatabase();
     const [state, dispatch] = useReducer(sessionReducer, undefined, initialState);
     const [sessionDate, setSessionDate] = useReducer(
         (_: string, date: string) => date,
@@ -335,12 +334,12 @@ function useStopwatchSessionState(): StopwatchSession {
     const sequence = useRef(0);
 
     const refreshFromDatabase = useCallback(async () => {
-        const session = await getSession(ACTIVE_SESSION_ID, true);
-        const children = await loadPersistedChildren();
+        const session = await database.getSession(ACTIVE_SESSION_ID, true);
+        const children = await loadPersistedChildren(database);
         if (session) setSessionDate(session.date);
         const nextState = createState(children);
         dispatch({ type: "hydrate", children: nextState.children, groups: nextState.groups });
-    }, []);
+    }, [database]);
 
     useEffect(() => {
         void refreshFromDatabase().catch((error) => {
@@ -354,14 +353,17 @@ function useStopwatchSessionState(): StopwatchSession {
         void Promise.all(
             state.children.map(
                 async (child) =>
-                    [child.id, await getChildTime(child.id, child.time?.ageGroup ?? "9+", currentTime)] as const,
+                    [
+                        child.id,
+                        await getChildTime(child.id, child.time?.ageGroup ?? "9+", currentTime, database),
+                    ] as const,
             ),
         )
             .then((results) => {
                 dispatch({ type: "update-times", times: Object.fromEntries(results) });
             })
             .catch((error) => console.error("Unable to refresh child time", error));
-    }, [currentTime, state.children.length]);
+    }, [currentTime, state.children.length, database]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -389,7 +391,7 @@ function useStopwatchSessionState(): StopwatchSession {
             const timestamp = nextTimestamp();
             await Promise.all(
                 childIds.map((childId) =>
-                    createLogEntry({
+                    database.createLogEntry({
                         id: `${childId}-${timestamp}`,
                         childId,
                         timestamp,
@@ -399,7 +401,7 @@ function useStopwatchSessionState(): StopwatchSession {
             );
             await refreshFromDatabase();
         },
-        [nextTimestamp, refreshFromDatabase],
+        [database, nextTimestamp, refreshFromDatabase],
     );
     const assignChildActivity = useCallback(
         (childId: string, category: Category) => {

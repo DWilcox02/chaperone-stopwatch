@@ -33,6 +33,8 @@ export function GroupActivityCard({
                     {groupChildren.map((child) => child.name).join(", ")}
                 </Text>
                 <Pressable
+                    accessibilityLabel="Open group activity options"
+                    accessibilityRole="button"
                     style={({ pressed }) => [styles.mergeActivityButton, pressed && styles.pressed]}
                     onPress={() => onSelectGroup(group)}
                 >
