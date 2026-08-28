@@ -34,8 +34,10 @@ export type LogEntry = {
 export type DatabaseAdapter = {
     getSession: typeof getSession;
     createSession: typeof createSession;
+    updateSession: typeof updateSession;
     listChildren: typeof listChildren;
     createChild: typeof createChild;
+    clearChildData: typeof clearChildData;
     listLogEntries: typeof listLogEntries;
     createLogEntry: typeof createLogEntry;
     getSessionExportRows: typeof getSessionExportRows;
@@ -212,6 +214,14 @@ export async function voidChild(id: string): Promise<void> {
 
 export const deleteChild = voidChild;
 
+export async function clearChildData(id: string): Promise<void> {
+    const database = await getDatabase();
+    await database.withTransactionAsync(async () => {
+        await database.runAsync("DELETE FROM LogEntries WHERE child_id = ?", id);
+        await database.runAsync("DELETE FROM Children WHERE id = ?", id);
+    });
+}
+
 export async function createLogEntry(entry: Omit<LogEntry, "voided">): Promise<LogEntry> {
     const database = await getDatabase();
     await database.runAsync(
@@ -346,8 +356,10 @@ export async function getCategoryTotals(childId?: string): Promise<Record<Catego
 export const defaultDatabaseAdapter: DatabaseAdapter = {
     getSession,
     createSession,
+    updateSession,
     listChildren,
     createChild,
+    clearChildData,
     listLogEntries,
     createLogEntry,
     getSessionExportRows,
