@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("expo-sqlite", () => ({ openDatabaseAsync: mocks.openDatabaseAsync }));
 
-import { createLogEntry, getDatabase, listChildren, listLogEntries } from "../../src/services/database";
+import { clearChildData, createLogEntry, getDatabase, listChildren, listLogEntries } from "../../src/services/database";
 
 describe("database adapter", () => {
     beforeEach(() => {
@@ -76,5 +76,17 @@ describe("database adapter", () => {
             "2024-01-01T10:00:00.000Z",
             "P",
         );
+    });
+
+    it("completely clears a child's log entries and row", async () => {
+        await clearChildData("child-1");
+
+        expect(mocks.database.withTransactionAsync).toHaveBeenCalledOnce();
+        expect(mocks.database.runAsync).toHaveBeenNthCalledWith(
+            1,
+            "DELETE FROM LogEntries WHERE child_id = ?",
+            "child-1",
+        );
+        expect(mocks.database.runAsync).toHaveBeenNthCalledWith(2, "DELETE FROM Children WHERE id = ?", "child-1");
     });
 });

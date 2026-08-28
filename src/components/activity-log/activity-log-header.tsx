@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { Modal, Pressable } from "react-native";
 import { useState } from "react";
+import { SymbolView } from "expo-symbols";
 
 import { ThemedText } from "@/components/themed-text";
 import styles from "@/constants/styles";
@@ -20,7 +21,7 @@ export function ActivityLogHeader({ children, selectedChildId, onSelectChild }: 
         <>
             <View style={styles.sectionHeader}>
                 <ThemedText style={styles.sectionTitle}>
-                    {selectedChild ? `${selectedChild.name}'s history` : "Recent activity"}
+                    {selectedChild ? `${selectedChild.name}'s recent activities` : "All recent activity"}
                 </ThemedText>
                 <Pressable
                     accessibilityRole="button"
@@ -29,13 +30,12 @@ export function ActivityLogHeader({ children, selectedChildId, onSelectChild }: 
                     style={({ pressed }) => [styles.logFilter, pressed && styles.pressed]}
                 >
                     <ThemedText style={styles.logFilterText}>{selectedChild?.name ?? "All children"}</ThemedText>
-                    <ThemedText style={styles.logFilterChevron}>v</ThemedText>
+                    <SymbolView name="chevron.down" size={17} />
                 </Pressable>
             </View>
             <Modal visible={isOpen} transparent animationType="fade" onRequestClose={() => setIsOpen(false)}>
                 <Pressable style={styles.modalOverlay} onPress={() => setIsOpen(false)}>
                     <View style={styles.logFilterMenu}>
-                        <ThemedText style={styles.activityMenuTitle}>View history</ThemedText>
                         <Pressable
                             style={({ pressed }) => [styles.logFilterOption, pressed && styles.pressed]}
                             onPress={() => {

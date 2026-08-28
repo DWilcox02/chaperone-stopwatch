@@ -1,0 +1,101 @@
+import { useState } from "react";
+import { Pressable, View } from "react-native";
+import { SymbolView } from "expo-symbols";
+
+import { ActivityLogCard } from "@/components/activity-log/activity-log-card";
+import { ActivityLogHeader } from "@/components/activity-log/activity-log-header";
+import { ActivityLogChart } from "@/components/activity-log/activity-log-chart";
+import { ScreenShell } from "@/components/screen-shell";
+import { useStopwatchSession } from "@/hooks/use-stopwatch-session";
+import { useExportServices } from "@/services/service-context";
+import styles from "@/constants/styles";
+import { ThemedText } from "@/components/themed-text";
+import { useDatabaseSeeder } from "@/services/seeder";
+
+
+export default function ActivityLogPage() {
+    const { children, currentTime, sessionDate, refreshSession } = useStopwatchSession();
+    const exportServices = useExportServices();
+    const { seedTestScenario } = useDatabaseSeeder();
+    const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
+    const selectedChild = children.find((child) => child.id === selectedChildId);
+    const [seeded, setSeeded] = useState(false);
+
+    const handleSeedDatabase = async () => {
+        if (!seeded) {
+            await seedTestScenario("casper", "2026-08-27");
+            await refreshSession();
+            setSeeded(true);
+        }
+    }
+
+    async function handleCsvExport() {
+        setIsExporting(true);
+        try {
+            await exportServices.csv.export(sessionDate);
+        } finally {
+            setIsExporting(false);
+        }
+    }
+
+    async function handlePdfExport() {
+        if (!selectedChildId) return;
+        setIsExporting(true);
+        try {
+            const refreshedSession = await refreshSession();
+            const refreshedChild = refreshedSession.children.find((child) => child.id === selectedChildId);
+            if (!refreshedChild) return;
+            await exportServices.pdf.export(refreshedChild.id, refreshedChild.name, refreshedSession.sessionDate);
+        } finally {
+            setIsExporting(false);
+        }
+    }
+
+    return (
+        <>
+            <View style={styles.exportActions}>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Export session as CSV"
+                    disabled={isExporting}
+                    onPress={() => void handleCsvExport()}
+                    style={({ pressed }) => [styles.exportButton, pressed && styles.pressed, isExporting && styles.exportButtonDisabled]}
+                >
+                    <SymbolView name="tablecells" size={17} tintColor="#FFFDF9" />
+                    <ThemedText style={styles.exportButtonText}>CSV</ThemedText>
+                </Pressable>
+                <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={selectedChild ? `Export ${selectedChild.name} as PDF` : "Select a child to export a PDF"}
+                    disabled={!selectedChild || isExporting}
+                    onPress={() => void handlePdfExport()}
+                    style={({ pressed }) => [
+                        styles.exportButton,
+                        styles.exportButtonSecondary,
+                        pressed && styles.pressed,
+                        (!selectedChild || isExporting) && styles.exportButtonDisabled,
+                    ]}
+                >
+                    <SymbolView name="doc.text" size={17} tintColor="#4B9B91" />
+                    <ThemedText style={[styles.exportButtonText, styles.exportButtonSecondaryText]}>PDF</ThemedText>
+                </Pressable>
+            </View>
+            <ActivityLogHeader
+                children={children}
+                selectedChildId={selectedChildId}
+                onSelectChild={setSelectedChildId}
+            />
+            <ActivityLogCard children={children} selectedChildId={selectedChildId} />
+            <ActivityLogChart children={children} selectedChildId={selectedChildId} currentTime={currentTime} />
+            {!seeded && <>
+                <Pressable
+                    onPress={() => handleSeedDatabase()}
+                >
+                    <ThemedText>Seed</ThemedText>
+                </Pressable>
+            </>}
+            
+        </>
+    );
+}

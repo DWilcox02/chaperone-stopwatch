@@ -14,6 +14,7 @@ type StopwatchSession = {
     sessionDate: string;
     currentTime: number;
     totalDuration: number;
+    refreshSession: () => Promise<{ children: Child[]; sessionDate: string }>;
     assignChildActivity: (childId: string, category: Category) => void;
     assignGroupActivity: (groupId: string, category: Category) => void;
     mergeActivity: (category: Category) => void;
@@ -336,9 +337,11 @@ function useStopwatchSessionState(): StopwatchSession {
     const refreshFromDatabase = useCallback(async () => {
         const session = await database.getSession(ACTIVE_SESSION_ID, true);
         const children = await loadPersistedChildren(database);
-        if (session) setSessionDate(session.date);
+        const nextSessionDate = session?.date ?? new Date().toISOString().slice(0, 10);
+        if (session) setSessionDate(nextSessionDate);
         const nextState = createState(children);
         dispatch({ type: "hydrate", children: nextState.children, groups: nextState.groups });
+        return { children: nextState.children, sessionDate: nextSessionDate };
     }, [database]);
 
     useEffect(() => {
@@ -470,6 +473,7 @@ function useStopwatchSessionState(): StopwatchSession {
         sessionDate,
         currentTime,
         totalDuration,
+        refreshSession: refreshFromDatabase,
         assignChildActivity,
         assignGroupActivity,
         mergeActivity,

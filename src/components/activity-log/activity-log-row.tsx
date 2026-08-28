@@ -10,15 +10,16 @@ type ActivityLogRowProps = {
     child: Child;
     segment: Segment;
     isLatest: boolean;
+    allChildren: boolean
 };
 
-export function ActivityLogRow({ child, segment, isLatest }: ActivityLogRowProps) {
+export function ActivityLogRow({ child, segment, isLatest, allChildren }: ActivityLogRowProps) {
     return (
         <View style={styles.logRow}>
             <View style={[styles.logLine, isLatest && { backgroundColor: child.color }]} />
             <ThemedText style={styles.logTime}>{formatClock(segment.startedAt)}</ThemedText>
             <ThemedText style={[styles.logActivity, isLatest && styles.logActivityActive]}>
-                {child.name} / {segment.category}
+                {allChildren ? child.name + " / " : ""}{segment.category}
             </ThemedText>
         </View>
     );

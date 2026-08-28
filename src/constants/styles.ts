@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
         borderBottomColor: "#EEEAE3",
     },
     logLine: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#D5D0C7" },
-    logTime: { width: 48, color: "#9A948A", fontSize: 12, fontVariant: ["tabular-nums"] },
+    logTime: { width: 65, color: "#9A948A", fontSize: 12, fontVariant: ["tabular-nums"] },
     logActivity: { color: "#6F6B63", fontSize: 13 },
     logActivityActive: { color: "#252A27", fontWeight: "800" },
     logChartCard: {
@@ -244,7 +244,6 @@ const styles = StyleSheet.create({
         fontSize: 9,
         fontWeight: "800",
         fontVariant: ["tabular-nums"],
-        height: 14,
         marginBottom: 4,
     },
     logChartTrack: {
@@ -304,16 +303,12 @@ const styles = StyleSheet.create({
         height: 52,
         justifyContent: "center",
         paddingHorizontal: 8,
-        borderBottomWidth: 1,
-        borderBottomColor: "#B8B1A6",
     },
     activityColumnName: { color: "#252A27", fontSize: 13, fontWeight: "800" },
     activityColumnTimer: {
         height: 44,
         justifyContent: "center",
         alignItems: "center",
-        borderTopWidth: 1,
-        borderTopColor: "#B8B1A6",
     },
     activityColumnTimerValue: { color: "#252A27", fontSize: 13, fontWeight: "800" },
     templateContainer: { flex: 1, justifyContent: "center", flexDirection: "row" },

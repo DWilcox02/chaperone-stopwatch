@@ -105,4 +105,31 @@ describe("useStopwatchSession", () => {
         expect(current?.children[0].segments.at(-1)?.category).toBe("Performance");
         renderer!.unmount();
     });
+
+    it("refreshes children and session date on demand", async () => {
+        let current: ReturnType<typeof useStopwatchSession> | undefined;
+        let renderer: ReactTestRenderer;
+
+        await act(async () => {
+            renderer = create(
+                <StopwatchSessionProvider>
+                    <Probe onUpdate={(value) => (current = value)} />
+                </StopwatchSessionProvider>,
+            );
+        });
+        await flushEffects();
+
+        testState.database.getSession.mockResolvedValue({ id: "active-session", date: "2026-08-27", voided: false });
+        testState.database.listChildren.mockResolvedValue([
+            { id: "casper", sessionId: "active-session", name: "casper", ageGroup: "9+", voided: false },
+        ]);
+
+        await act(async () => {
+            await current!.refreshSession();
+        });
+
+        expect(current?.sessionDate).toBe("2026-08-27");
+        expect(current?.children[0].name).toBe("casper");
+        renderer!.unmount();
+    });
 });

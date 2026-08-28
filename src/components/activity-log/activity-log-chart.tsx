@@ -45,6 +45,12 @@ export function ActivityLogChart({ children, selectedChildId, currentTime }: Act
         60 * 60 * 1000,
         ...values.map(({ duration, allowedHours }) => Math.max(duration, (allowedHours ?? 0) * 60 * 60 * 1000)),
     ) * 1.12;
+    const formatChartHours = (hours?: number) => {
+        if (!hours) return formatHoursRounded(0); 
+        const formatted = formatHoursRounded(hours);
+        return (formatted.length > 5) ? formatted.replace(/hrs?/, "") : formatted;
+    }
+        
 
     return (
         <View style={styles.logChartCard}>
@@ -62,11 +68,11 @@ export function ActivityLogChart({ children, selectedChildId, currentTime }: Act
                             key={category.name}
                             style={styles.logChartColumn}
                             accessible
-                            accessibilityLabel={`${category.name}: ${formatDuration(category.duration)}${
+                            accessibilityLabel={`${category.name}: ${formatHoursRounded(category.duration)}${
                                 category.allowedHours === undefined ? "" : `, ${category.allowedHours} hour limit`
                             }`}
                         >
-                            <ThemedText style={styles.logChartValue}>{formatHoursRounded(category.duration)}</ThemedText>
+                            <ThemedText style={styles.logChartValue}>{formatChartHours(category.duration)}</ThemedText>
                             <View style={styles.logChartTrack}>
                                 <View
                                     style={[
@@ -78,7 +84,7 @@ export function ActivityLogChart({ children, selectedChildId, currentTime }: Act
                                     <>
                                         <View style={[styles.logChartLimit, { bottom: `${allowedRatio * 100}%` }]} />
                                         <ThemedText style={[styles.logChartLimitLabel, { bottom: limitLabelBottom }]}>
-                                            {formatHoursRounded((category.allowedHours ?? 0) * 60 * 60 * 1000)}
+                                            {formatChartHours((category.allowedHours ?? 0) * 60 * 60 * 1000)}
                                         </ThemedText>
                                     </>
                                 )}
