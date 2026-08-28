@@ -43,9 +43,18 @@ export function injectLogEntriesIntoTimeGrid(entries: LogEntry[], reportDate: st
                 !entry.voided && Number.isFinite(entry.timestamp) && REPORT_CATEGORY_CODES.has(entry.categoryCode),
         )
         .sort((first, second) => first.timestamp - second.timestamp)
-        .forEach((entry) => {
-            const cellIndex = getCellIndex(entry.timestamp, gridStart);
-            if (cellIndex >= 0 && cellIndex < cells.length) cells[cellIndex].push(entry.categoryCode);
+        .forEach((entry, entryIndex, filteredEntries) => {
+            const entryCell = getCellIndex(entry.timestamp, gridStart);
+            const startCell = Math.max(0, entryCell);
+            const nextEntry = filteredEntries[entryIndex + 1];
+            const endCell = Math.min(
+                cells.length,
+                Math.max(entryCell + 1, nextEntry ? getCellIndex(nextEntry.timestamp, gridStart) : cells.length),
+            );
+
+            for (let cellIndex = startCell; cellIndex < endCell; cellIndex += 1) {
+                cells[cellIndex].push(entry.categoryCode);
+            }
         });
 
     return Array.from({ length: GRID_END_HOUR - GRID_START_HOUR }, (_, hourIndex) => {
