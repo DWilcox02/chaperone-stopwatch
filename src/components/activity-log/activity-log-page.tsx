@@ -14,7 +14,7 @@ import { useDatabaseSeeder } from "@/services/seeder";
 
 
 export default function ActivityLogPage() {
-    const { children, currentTime, sessionDate } = useStopwatchSession();
+    const { children, currentTime, sessionDate, refreshSession } = useStopwatchSession();
     const exportServices = useExportServices();
     const { seedTestScenario } = useDatabaseSeeder();
     const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
@@ -25,6 +25,7 @@ export default function ActivityLogPage() {
     const handleSeedDatabase = async () => {
         if (!seeded) {
             await seedTestScenario("casper", "2026-08-27");
+            await refreshSession();
             setSeeded(true);
         }
     }
@@ -39,10 +40,13 @@ export default function ActivityLogPage() {
     }
 
     async function handlePdfExport() {
-        if (!selectedChild) return;
+        if (!selectedChildId) return;
         setIsExporting(true);
         try {
-            await exportServices.pdf.export(selectedChild.id, selectedChild.name, sessionDate);
+            const refreshedSession = await refreshSession();
+            const refreshedChild = refreshedSession.children.find((child) => child.id === selectedChildId);
+            if (!refreshedChild) return;
+            await exportServices.pdf.export(refreshedChild.id, refreshedChild.name, refreshedSession.sessionDate);
         } finally {
             setIsExporting(false);
         }
